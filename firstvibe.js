@@ -18,17 +18,15 @@ const pastelColors = {
   lightPink: chalk.hex('#FFAFD7')    // 연핑크
 };
 
-// Ctrl+C 처리를 위한 SIGINT 핸들러
-process.on('SIGINT', () => {
-  console.log(pastelColors.peach('\n\n👋 프로그램을 종료합니다.'));
-  process.exit(0);
-});
 
 // inquirer 라이브러리의 취소 처리 함수들
 const handleCtrlC = () => {
-  console.log(pastelColors.peach('\n\n👋 프로그램을 종료합니다.'));
+  console.log(pastelColors.peach('\n\n👋 vibe quitting'));
   process.exit(0);
 };
+
+// inquirer 전역 SIGINT 처리
+process.on('SIGINT', handleCtrlC);
 import { Command } from "commander";
 import ora from "ora";
 import fs from "fs";
