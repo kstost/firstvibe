@@ -390,7 +390,7 @@
         
         function copyToClipboard(text) {
             navigator.clipboard.writeText(text).then(function() {
-                showToast('📋 명령어가 복사되었습니다!');
+                showToast('📋 명령어가 복사되었습니다! 터미널에 붙여넣고 실행하세요');
             }).catch(function(err) {
                 console.error('복사 실패: ', err);
                 showToast('❌ 복사에 실패했습니다');
