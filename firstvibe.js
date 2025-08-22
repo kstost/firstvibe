@@ -736,8 +736,8 @@ Structure initial question choices to quickly differentiate product visions, wit
 
         if (confirmed) {
           restart = false; // 확인됐으면 루프 종료
-          // 화면 클리어 후 PRD 문서 생성 및 출력
-          console.clear();
+          // 이전 줄 지우기 (확인 질문 제거)
+          process.stdout.write('\x1B[1A\x1B[2K');
           await this.generateAndDisplayPRD();
         }
         // confirmed가 false면 다시 루프를 돈다 (재시작)
