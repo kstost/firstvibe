@@ -6,6 +6,8 @@
     <title>firstvibe 📝 - 아이디어를 MVP 토대로 확장시키는 AI 문서 생성 도구</title>
     <meta name="description" content="한 줄짜리 아이디어를 PRD, TRD, TODO로 확장하여 Cursor, Claude Code 같은 AI Coding Agent가 바로 개발할 수 있도록 준비해드립니다.">
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
+        
         * {
             margin: 0;
             padding: 0;
@@ -13,10 +15,10 @@
         }
         
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
             line-height: 1.6;
-            color: #333;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #212121;
+            background: #1976d2;
             min-height: 100vh;
         }
         
@@ -46,76 +48,72 @@
         }
         
         .install-section {
-            background: rgba(255,255,255,0.15);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
+            background: rgba(255,255,255,0.95);
+            border-radius: 8px;
             padding: 40px;
             margin: 40px auto;
             max-width: 800px;
-            border: 1px solid rgba(255,255,255,0.2);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.12), 0 4px 8px rgba(0,0,0,0.08);
         }
         
         .install-title {
             font-size: 2rem;
             margin-bottom: 20px;
-            color: #fff;
-            font-weight: 600;
+            color: #1976d2;
+            font-weight: 500;
         }
         
         .install-command {
-            background: #1a1a1a;
-            color: #00ff41;
+            background: #263238;
+            color: #4caf50;
             padding: 20px 30px;
-            border-radius: 12px;
-            font-family: 'Monaco', 'Menlo', monospace;
+            border-radius: 4px;
+            font-family: 'Roboto Mono', Monaco, 'Menlo', monospace;
             font-size: 1.8rem;
-            font-weight: bold;
+            font-weight: 500;
             text-align: center;
             margin: 20px 0;
-            border: 2px solid #00ff41;
-            box-shadow: 0 8px 32px rgba(0,255,65,0.2);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.12);
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.2s cubic-bezier(0.4, 0.0, 0.2, 1);
         }
         
         .install-command:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 12px 40px rgba(0,255,65,0.3);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.16);
+            transform: translateY(-1px);
         }
         
         .copy-hint {
             font-size: 0.9rem;
-            color: rgba(255,255,255,0.8);
+            color: #616161;
             margin-top: 10px;
         }
         
         .main-content {
-            background: white;
-            margin-top: -40px;
-            border-radius: 40px 40px 0 0;
+            background: #fafafa;
+            margin-top: 0;
             padding: 80px 0 60px;
-            box-shadow: 0 -10px 40px rgba(0,0,0,0.1);
         }
         
         .features {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 40px;
+            gap: 24px;
             margin: 60px 0;
         }
         
         .feature-card {
             background: white;
-            padding: 40px;
-            border-radius: 20px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-            border: 1px solid #f0f0f0;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            padding: 32px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.12), 0 8px 16px rgba(0,0,0,0.08);
+            border: none;
+            transition: all 0.2s cubic-bezier(0.4, 0.0, 0.2, 1);
         }
         
         .feature-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.12), 0 16px 24px rgba(0,0,0,0.12);
+            transform: translateY(-2px);
         }
         
         .feature-icon {
@@ -125,21 +123,22 @@
         
         .feature-title {
             font-size: 1.5rem;
-            font-weight: 600;
-            margin-bottom: 15px;
-            color: #333;
+            font-weight: 500;
+            margin-bottom: 16px;
+            color: #212121;
         }
         
         .feature-desc {
-            color: #666;
-            line-height: 1.6;
+            color: #757575;
+            line-height: 1.5;
+            font-weight: 400;
         }
         
         
         .cta-section {
             text-align: center;
             padding: 80px 0;
-            background: linear-gradient(135deg, #667eea, #764ba2);
+            background: #1976d2;
             color: white;
             margin: 80px 0 0;
         }
@@ -147,7 +146,7 @@
         .cta-title {
             font-size: 2.5rem;
             margin-bottom: 20px;
-            font-weight: 600;
+            font-weight: 400;
         }
         
         .cta-subtitle {
@@ -158,37 +157,38 @@
         
         .btn-cta {
             background: white;
-            color: #667eea;
-            padding: 18px 40px;
+            color: #1976d2;
+            padding: 12px 32px;
             border: none;
-            border-radius: 50px;
-            font-size: 1.2rem;
-            font-weight: 600;
+            border-radius: 4px;
+            font-size: 1.1rem;
+            font-weight: 500;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.2s cubic-bezier(0.4, 0.0, 0.2, 1);
             text-decoration: none;
             display: inline-block;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.12);
         }
         
         .btn-cta:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 30px rgba(255,255,255,0.3);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.16);
+            transform: translateY(-1px);
         }
         
         .toast {
             position: fixed;
-            top: 20px;
-            right: 20px;
-            background: #00ff41;
-            color: #1a1a1a;
+            top: 24px;
+            right: 24px;
+            background: #4caf50;
+            color: white;
             padding: 16px 24px;
-            border-radius: 8px;
-            font-weight: 600;
-            box-shadow: 0 4px 12px rgba(0,255,65,0.3);
+            border-radius: 4px;
+            font-weight: 500;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.16);
             z-index: 1000;
             opacity: 0;
             transform: translateY(-20px);
-            transition: all 0.3s ease;
+            transition: all 0.2s cubic-bezier(0.4, 0.0, 0.2, 1);
         }
         
         .toast.show {
@@ -208,9 +208,9 @@
             
             
             .toast {
-                right: 10px;
-                left: 10px;
-                right: 10px;
+                right: 16px;
+                left: 16px;
+                right: 16px;
             }
         }
     </style>
@@ -228,8 +228,8 @@
                     npx firstvibe
                 </div>
                 <p class="copy-hint">📋 클릭하여 복사</p>
-                <p style="font-size: 0.85rem; color: rgba(255,255,255,0.7); margin-top: 15px;">
-                    💡 Node.js가 필요합니다. 설치되지 않았다면 <a href="https://nodejs.org/ko/download" target="_blank" style="color: #00ff41; text-decoration: none; font-weight: 600;">여기서 다운로드</a>하세요.
+                <p style="font-size: 0.85rem; color: #757575; margin-top: 15px;">
+                    💡 Node.js가 필요합니다. 설치되지 않았다면 <a href="https://nodejs.org/ko/download" target="_blank" style="color: #1976d2; text-decoration: none; font-weight: 500;">여기서 다운로드</a>하세요.
                 </p>
             </div>
         </div>
@@ -238,8 +238,8 @@
     <div class="main-content">
         <div class="container">
             <div style="text-align: center; padding: 0 0 60px; max-width: 800px; margin: 0 auto;">
-                <p style="font-size: 1.2rem; color: #666; line-height: 1.8; margin-bottom: 0;">
-                    당신이 가진 한 줄짜리 아이디어를 구체적인 실행 계획으로 확장해드립니다. 아이디어의 핵심을 빠르게 정리하고, 필요한 기능과 구조를 잡아 <strong style="color: #667eea;">PRD(제품요구사항), TRD(기술요구사항), TodoList(개발할일목록)</strong>로 만들어드립니다. 완성된 문서를 통해 <strong style="color: #764ba2;">Cursor, Claude Code</strong>와 같은 AI Coding Agent가 실제 개발을 수행할 수 있도록 준비합니다.
+                <p style="font-size: 1.2rem; color: #424242; line-height: 1.6; margin-bottom: 0; font-weight: 400;">
+                    당신이 가진 한 줄짜리 아이디어를 구체적인 실행 계획으로 확장해드립니다. 아이디어의 핵심을 빠르게 정리하고, 필요한 기능과 구조를 잡아 <strong style="color: #1976d2;">PRD(제품요구사항), TRD(기술요구사항), TodoList(개발할일목록)</strong>로 만들어드립니다. 완성된 문서를 통해 <strong style="color: #1976d2;">Cursor, Claude Code</strong>와 같은 AI Coding Agent가 실제 개발을 수행할 수 있도록 준비합니다.
                 </p>
             </div>
             <div class="features">
