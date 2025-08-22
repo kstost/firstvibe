@@ -1,0 +1,39 @@
+# Node modules
+node_modules/
+
+# Development files
+.env
+.env.*
+
+# Git
+.git/
+.gitignore
+
+# Editor files
+.vscode/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Testing
+coverage/
+.nyc_output/
+
+# Build artifacts
+dist/
+
+# Project specific files
+CLAUDE.md
+.commit_message.txt
+prd.md
+todo.md
+trd.md
+
+.DS_Store
