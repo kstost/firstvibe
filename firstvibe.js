@@ -389,7 +389,7 @@ Progress through these 5 areas in order, customizing based on previous answers:
 - Each choice contains **single concept only** (don't mix multiple concepts).
 - Don't use open-ended choices like "Other/Direct input".
 - For numerical choices (performance, availability, etc.), present in **domain-appropriate intervals** (high/medium/low or ranges, prohibit specific value enumeration).
-- Only specify **allowed count** when multiple selection is needed (e.g., maximum N items).
+- **Single selection only**: Multiple selection is not allowed. Each question must have exactly one answer selected.
 
 ---
 
