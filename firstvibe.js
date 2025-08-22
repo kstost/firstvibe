@@ -660,6 +660,12 @@ class PRDGenerator {
       }
 
     } catch (error) {
+      // SIGINT (Ctrl+C) 에러인 경우 우아하게 종료
+      if (error.message.includes('User force closed') || error.message.includes('SIGINT')) {
+        console.log(pastelColors.peach('\n👋 vibe quitting'));
+        process.exit(0);
+      }
+      
       console.error(chalk.red('❌ 프로세스 중 오류가 발생했습니다:'), error.message);
       if (this.options.verbose) {
         console.error(chalk.gray('상세 오류:'), error.stack);
