@@ -588,9 +588,8 @@ class PRDGenerator {
     const effectiveConfig = getEffectiveConfig();
     if (!effectiveConfig.openai.apiKey) {
       console.error(chalk.red('❌ OpenAI API 키가 설정되지 않았습니다.'));
-      console.error(chalk.yellow('💡 다음 방법 중 하나로 API 키를 설정해주세요:'));
-      console.error(chalk.gray('   1. firstvibe config set openai.apiKey sk-...'));
-      console.error(chalk.gray('   2. 환경변수: export OPENAI_API_KEY=sk-...'));
+      console.error(chalk.yellow('💡 다음 명령으로 API 키를 설정해주세요:'));
+      console.error(chalk.gray('   firstvibe config set openai.apiKey sk-...'));
       process.exit(1);
     }
 
@@ -1023,7 +1022,6 @@ program
     console.log(chalk.gray('  • cheap 모드: 빠르고 저렴한 문서 생성 (프로토타입용)'));
     console.log(chalk.gray('  • expensive 모드: 고품질 문서 생성 (실제 프로젝트용)'));
     console.log(chalk.gray('  • 설정 파일: ') + getConfigFilePath());
-    console.log(chalk.gray('  • 환경변수로 일시적 오버라이드 가능 (OPENAI_*)\n'));
   });
 
 program.parse();

@@ -6,20 +6,7 @@ import path from 'path';
  * Windows, macOS, Linux에서 모두 동작
  */
 export function getHomeDirectory() {
-  // Node.js os.homedir()는 크로스 플랫폼을 지원하지만
-  // 추가적인 안전장치를 위해 환경변수도 확인
-  const homeDir = os.homedir();
-  
-  if (homeDir) {
-    return homeDir;
-  }
-  
-  // 환경변수를 통한 폴백
-  if (process.platform === 'win32') {
-    return process.env.USERPROFILE || process.env.HOME || 'C:\\Users\\Default';
-  } else {
-    return process.env.HOME || '/tmp';
-  }
+  return os.homedir();
 }
 
 /**

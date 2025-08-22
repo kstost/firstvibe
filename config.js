@@ -183,35 +183,35 @@ export function getAllConfig() {
 }
 
 /**
- * 환경변수와 설정 파일을 병합하여 최종 설정 반환
- * 우선순위: 환경변수 > 설정파일 > 기본값
+ * 설정 파일과 기본값을 병합하여 최종 설정 반환
+ * 우선순위: 설정파일 > 기본값
  */
 export function getEffectiveConfig() {
   const config = loadConfig();
   
-  // 환경변수 오버라이드 적용
-  const envOverrides = {
+  // 설정 파일 값 사용
+  const finalConfig = {
     openai: {
-      apiKey: process.env.OPENAI_API_KEY || config.openai.apiKey,
-      questionModel: process.env.OPENAI_QUESTION_MODEL || config.openai.questionModel,
-      prdModel: process.env.OPENAI_PRD_MODEL || config.openai.prdModel,
-      trdModel: process.env.OPENAI_TRD_MODEL || config.openai.trdModel,
-      todoModel: process.env.OPENAI_TODO_MODEL || config.openai.todoModel,
-      questionVerbosity: process.env.OPENAI_QUESTION_VERBOSITY || config.openai.questionVerbosity,
-      prdVerbosity: process.env.OPENAI_PRD_VERBOSITY || config.openai.prdVerbosity,
-      trdVerbosity: process.env.OPENAI_TRD_VERBOSITY || config.openai.trdVerbosity,
-      todoVerbosity: process.env.OPENAI_TODO_VERBOSITY || config.openai.todoVerbosity,
-      questionReasoningEffort: process.env.OPENAI_QUESTION_REASONING_EFFORT || config.openai.questionReasoningEffort,
-      prdReasoningEffort: process.env.OPENAI_PRD_REASONING_EFFORT || config.openai.prdReasoningEffort,
-      trdReasoningEffort: process.env.OPENAI_TRD_REASONING_EFFORT || config.openai.trdReasoningEffort,
-      todoReasoningEffort: process.env.OPENAI_TODO_REASONING_EFFORT || config.openai.todoReasoningEffort
+      apiKey: config.openai.apiKey,
+      questionModel: config.openai.questionModel,
+      prdModel: config.openai.prdModel,
+      trdModel: config.openai.trdModel,
+      todoModel: config.openai.todoModel,
+      questionVerbosity: config.openai.questionVerbosity,
+      prdVerbosity: config.openai.prdVerbosity,
+      trdVerbosity: config.openai.trdVerbosity,
+      todoVerbosity: config.openai.todoVerbosity,
+      questionReasoningEffort: config.openai.questionReasoningEffort,
+      prdReasoningEffort: config.openai.prdReasoningEffort,
+      trdReasoningEffort: config.openai.trdReasoningEffort,
+      todoReasoningEffort: config.openai.todoReasoningEffort
     },
     app: {
       ...config.app
     }
   };
   
-  return envOverrides;
+  return finalConfig;
 }
 
 /**
