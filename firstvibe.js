@@ -538,10 +538,9 @@ class PRDGenerator {
 
     const { apiKey } = await inquirer.prompt([
       {
-        type: 'input',
+        type: 'password',
         name: 'apiKey',
         message: '🔑 OpenAI API 키를 입력해주세요 (sk-로 시작):',
-        mask: '*',
         validate: value => {
           if (!value) return 'API 키를 입력해주세요.';
           if (!value.startsWith('sk-')) return 'API 키는 sk-로 시작해야 합니다.';
