@@ -224,6 +224,27 @@
             box-shadow: 0 10px 30px rgba(255,255,255,0.3);
         }
         
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #00ff41;
+            color: #1a1a1a;
+            padding: 16px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(0,255,65,0.3);
+            z-index: 1000;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: all 0.3s ease;
+        }
+        
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
         @media (max-width: 768px) {
             .hero h1 {
                 font-size: 2.5rem;
@@ -243,6 +264,12 @@
                 margin-right: 0;
                 margin-bottom: 20px;
             }
+            
+            .toast {
+                right: 10px;
+                left: 10px;
+                right: 10px;
+            }
         }
     </style>
 </head>
@@ -254,8 +281,8 @@
             
             <div class="install-section">
                 <h2 class="install-title">⚡ 지금 바로 시작하세요</h2>
-                <div class="install-command" onclick="copyToClipboard('npm i firstvibe -g')">
-                    npm i firstvibe -g
+                <div class="install-command" onclick="copyToClipboard('npx firstvibe')">
+                    npx firstvibe
                 </div>
                 <p class="copy-hint">📋 클릭하여 복사</p>
             </div>
@@ -332,22 +359,41 @@
     </div>
     
     <script>
+        function showToast(message) {
+            // 기존 토스트가 있다면 제거
+            const existingToast = document.querySelector('.toast');
+            if (existingToast) {
+                existingToast.remove();
+            }
+            
+            // 새 토스트 생성
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            
+            // 애니메이션으로 표시
+            setTimeout(() => {
+                toast.classList.add('show');
+            }, 100);
+            
+            // 3초 후 제거
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => {
+                    if (toast.parentNode) {
+                        toast.parentNode.removeChild(toast);
+                    }
+                }, 300);
+            }, 3000);
+        }
+        
         function copyToClipboard(text) {
             navigator.clipboard.writeText(text).then(function() {
-                // 복사 성공 피드백
-                const button = event.target;
-                const originalText = button.textContent;
-                button.textContent = '📋 복사 완료!';
-                button.style.background = '#00ff41';
-                button.style.color = '#000';
-                
-                setTimeout(() => {
-                    button.textContent = originalText;
-                    button.style.background = '#1a1a1a';
-                    button.style.color = '#00ff41';
-                }, 2000);
+                showToast('📋 명령어가 복사되었습니다!');
             }).catch(function(err) {
                 console.error('복사 실패: ', err);
+                showToast('❌ 복사에 실패했습니다');
             });
         }
         
