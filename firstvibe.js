@@ -564,7 +564,6 @@ class PRDGenerator {
     setConfigValue('openai.apiKey', apiKey);
 
     console.log(chalk.green('\n✅ API 키가 성공적으로 설정되었습니다!'));
-    console.log(chalk.gray('이제 앱을 시작합니다...\n'));
 
     // API 키 설정 완료, 함수 종료하여 start()로 돌아감
   }
