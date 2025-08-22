@@ -564,7 +564,7 @@ class PRDGenerator {
     setConfigValue('openai.apiKey', apiKey);
 
     console.log(chalk.green('\n✅ API 키가 성공적으로 설정되었습니다!'));
-    console.log(chalk.gray('이제 앱을 시작합니다...\n'));
+    // console.log(chalk.gray('이제 앱을 시작합니다...\n'));
 
     // 앱 종료하지 않고 계속 실행
     return;
@@ -575,7 +575,11 @@ class PRDGenerator {
     const effectiveConfig = getEffectiveConfig();
     if (!effectiveConfig.openai.apiKey) {
       await this.promptForApiKey();
-      return;
+      // API 키 설정 후 다시 설정을 로드하고 계속 진행
+      const newConfig = getEffectiveConfig();
+      if (!newConfig.openai.apiKey) {
+        return; // 여전히 API 키가 없으면 종료
+      }
     }
 
     console.log(pastelColors.lavender.bold('🚀 firstvibe - Vibe Document Generator'));
