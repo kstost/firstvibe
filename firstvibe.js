@@ -536,33 +536,40 @@ class PRDGenerator {
     console.log(chalk.gray('   OpenAI API 키는 다음 링크에서 발급받을 수 있습니다:'));
     console.log(chalk.blue('   👉 https://platform.openai.com/account/api-keys\n'));
 
-    const { apiKey } = await inquirer.prompt([
-      {
-        type: 'input',
-        name: 'apiKey',
-        message: '🔑 OpenAI API 키를 입력해주세요 (sk-로 시작):',
-        validate: (value) => {
-          if (!value) {
-            return 'API 키를 입력해주세요.';
+    let apiKey;
+    while (!apiKey) {
+      const response = await inquirer.prompt([
+        {
+          type: 'input',
+          name: 'apiKey',
+          message: '🔑 OpenAI API 키를 입력해주세요 (sk-로 시작):',
+          default: '', // 항상 빈 값으로 시작
+          transformer: (input) => {
+            // 입력할 때 * 표시
+            return '*'.repeat(input.length);
           }
-          if (!value.startsWith('sk-')) {
-            return 'API 키는 sk-로 시작해야 합니다.';
-          }
-          if (value.length < 20) {
-            return 'API 키가 너무 짧습니다.';
-          }
-          return true;
-        },
-        transformer: (input) => {
-          // 입력할 때 * 표시
-          return '*'.repeat(input.length);
         }
-      }
-    ]);
+      ]);
 
-    if (!apiKey) {
-      console.log(chalk.yellow('\n설정이 취소되었습니다. 나중에 다시 실행해주세요.'));
-      process.exit(0);
+      const inputValue = response.apiKey;
+
+      if (!inputValue) {
+        console.log(chalk.yellow('\n설정이 취소되었습니다. 나중에 다시 실행해주세요.'));
+        process.exit(0);
+      }
+
+      // 검증
+      if (!inputValue.startsWith('sk-')) {
+        console.log(chalk.red('❌ API 키는 sk-로 시작해야 합니다.\n'));
+        continue; // 다시 입력 요청
+      }
+
+      if (inputValue.length < 20) {
+        console.log(chalk.red('❌ API 키가 너무 짧습니다.\n'));
+        continue; // 다시 입력 요청
+      }
+
+      apiKey = inputValue; // 검증 통과
     }
 
     // API 키 저장
