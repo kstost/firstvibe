@@ -1,6 +1,6 @@
 {
   "name": "firstvibe",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "쉽게 PRD, TRD, TODO List를 만들 수 있는 vibe document 생성 도구",
   "main": "firstvibe.js",
   "type": "module",

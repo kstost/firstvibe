@@ -133,8 +133,8 @@ class PRDGenerator {
       const qa = this.qaHistory[i];
       if (qa.aiResponse && qa.aiResponse.questions && qa.userAnswer) {
         const question = qa.aiResponse.questions[0].question;
-        console.log(pastelColors.blue.bold(`❓ [${i + 1}] ${question}`));
-        console.log(pastelColors.mint(`✅ ${qa.userAnswer}`));
+        console.log(pastelColors.blue.bold(`[${i + 1}] ${question}`));
+        console.log(pastelColors.mint(` ⎿ ${qa.userAnswer}`));
       }
     }
 
