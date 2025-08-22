@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import OpenAI from "openai";
-import prompts from "prompts";
+import inquirer from "inquirer";
 import chalk from "chalk";
 
 // 파스텔톤 색상 정의
@@ -24,47 +24,11 @@ process.on('SIGINT', () => {
   process.exit(0);
 });
 
-// prompts 라이브러리의 취소 처리 함수들
+// inquirer 라이브러리의 취소 처리 함수들
 const handleCtrlC = () => {
   console.log(pastelColors.peach('\n\n👋 프로그램을 종료합니다.'));
   process.exit(0);
 };
-
-// prompts 라이브러리의 취소 동작 오버라이드
-const originalPrompts = prompts;
-
-// prompts 함수를 래핑하여 ESC 키 비활성화
-const wrappedPrompts = async (questions, options = {}) => {
-  const modifiedOptions = {
-    ...options,
-    onCancel: options.onCancel || handleCtrlC,
-    // ESC 키를 완전히 차단하는 커스텀 핸들러
-    onState: (state) => {
-      // ESC로 인한 중단 시 아무것도 하지 않고 계속 진행
-      if (state.aborted && !state.exited) {
-        // ESC 키로 인한 중단을 무시
-        state.aborted = false;
-        return;
-      }
-      if (options.onState) {
-        return options.onState(state);
-      }
-    }
-  };
-
-  try {
-    return await originalPrompts(questions, modifiedOptions);
-  } catch (error) {
-    // ESC로 인한 에러 시 다시 시도
-    if (error.message.includes('User force closed') || error.message.includes('canceled')) {
-      return await wrappedPrompts(questions, options);
-    }
-    throw error;
-  }
-};
-
-// 전역 prompts를 오버라이드
-global.prompts = wrappedPrompts;
 import { Command } from "commander";
 import ora from "ora";
 import fs from "fs";
@@ -178,24 +142,20 @@ class PRDGenerator {
   }
 
   async confirmOrEdit() {
-    const response = await wrappedPrompts({
-      type: 'select',
-      name: 'action',
-      message: pastelColors.peach('위의 답변들을 확인해주세요. 어떻게 하시겠습니까?'),
-      choices: [
-        { title: '✅ 답변이 만족스럽습니다. PRD 생성을 시작하세요.', value: 'confirm' },
-        { title: '✏️  특정 답변을 수정하고 싶습니다.', value: 'edit' },
-        { title: '🔄 처음부터 다시 시작하고 싶습니다.', value: 'restart' }
-      ]
-    }, {
-      onCancel: handleCtrlC,
-      onSubmit: () => {
-        // 수정 과정에서는 선택한 내용을 화면에서 지움
-        process.stdout.write('\x1B[1A\x1B[2K');
+    const { action } = await inquirer.prompt([
+      {
+        type: 'list',
+        name: 'action',
+        message: pastelColors.peach('위의 답변들을 확인해주세요. 어떻게 하시겠습니까?'),
+        choices: [
+          { name: '✅ 답변이 만족스럽습니다. PRD 생성을 시작하세요.', value: 'confirm' },
+          { name: '✏️  특정 답변을 수정하고 싶습니다.', value: 'edit' },
+          { name: '🔄 처음부터 다시 시작하고 싶습니다.', value: 'restart' }
+        ]
       }
-    });
+    ]);
 
-    return response.action;
+    return action;
   }
 
   async selectQuestionToEdit() {
@@ -216,23 +176,16 @@ class PRDGenerator {
 
     choices.push({ name: '⬅️  뒤로 가기', value: 'back' });
 
-    const response = await wrappedPrompts({
-      type: 'select',
-      name: 'questionIndex',
-      message: pastelColors.lightMint('수정하고 싶은 항목을 선택해주세요:'),
-      choices: choices.map(choice => ({
-        title: choice.name || choice,
-        value: choice.value || choice
-      }))
-    }, {
-      onCancel: handleCtrlC,
-      onSubmit: () => {
-        // 수정 과정에서는 선택한 내용을 화면에서 지움
-        process.stdout.write('\x1B[1A\x1B[2K');
+    const { questionIndex } = await inquirer.prompt([
+      {
+        type: 'list',
+        name: 'questionIndex',
+        message: pastelColors.lightMint('수정하고 싶은 항목을 선택해주세요:'),
+        choices: choices
       }
-    });
+    ]);
 
-    return response.questionIndex;
+    return questionIndex;
   }
 
   async editAnswer(questionIndex) {
@@ -260,48 +213,35 @@ class PRDGenerator {
       }
     }
 
-    const response = await wrappedPrompts({
-      type: 'select',
-      name: 'selection',
-      message: currentAnswer ?
-        pastelColors.lightPurple(`현재 답변: "${currentAnswer}" - 새로운 답변을 선택해주세요:`) :
-        pastelColors.lightPurple(`[${this.currentQuestion}/${this.maxQuestions}] ${questionData.question}`),
-      choices: choices.map(choice => ({
-        title: choice.name || choice,
-        value: choice.value || choice
-      })),
-      initial: defaultChoice
-    }, {
-      onCancel: handleCtrlC,
-      onSubmit: () => {
-        // 수정 시에는 화면 지움, 일반 질문-답변 시에는 유지
-        if (currentAnswer) {
-          // 수정 모드: 선택한 내용을 화면에서 지움
-          process.stdout.write('\x1B[1A\x1B[2K');
-        }
-        // 일반 질문-답변 모드: 답변이 남아있도록 아무것도 하지 않음
+    const { selection } = await inquirer.prompt([
+      {
+        type: 'list',
+        name: 'selection',
+        message: currentAnswer ?
+          pastelColors.lightPurple(`현재 답변: "${currentAnswer}" - 새로운 답변을 선택해주세요:`) :
+          pastelColors.lightPurple(`[${this.currentQuestion}/${this.maxQuestions}] ${questionData.question}`),
+        choices: choices,
+        default: defaultChoice
       }
-    });
+    ]);
 
-    const answer = response.selection;
-
-    if (answer === "기타 (직접 입력)") {
-      const customResponse = await wrappedPrompts({
-        type: 'text',
-        name: 'custom',
-        message: pastelColors.yellow('직접 입력해주세요:'),
-        initial: currentAnswer && !choices.slice(0, -1).includes(currentAnswer) ? currentAnswer : '',
-        validate: (input) => {
-          return input.trim() !== '' || '답변을 입력해주세요.';
+    if (selection === "기타 (직접 입력)") {
+      const { custom } = await inquirer.prompt([
+        {
+          type: 'input',
+          name: 'custom',
+          message: pastelColors.yellow('직접 입력해주세요:'),
+          default: currentAnswer && !choices.slice(0, -1).includes(currentAnswer) ? currentAnswer : '',
+          validate: (input) => {
+            return input.trim() !== '' || '답변을 입력해주세요.';
+          }
         }
-      }, {
-        onCancel: handleCtrlC
-      });
+      ]);
 
-      return customResponse.custom;
+      return custom;
     }
 
-    return answer;
+    return selection;
   }
 
   async generatePRD() {
@@ -563,16 +503,16 @@ class PRDGenerator {
           // 수정 완료 후 바로 다시 선택 화면으로 돌아감
         }
       } else if (action === 'restart') {
-        const response = await wrappedPrompts({
-          type: 'confirm',
-          name: 'restart',
-          message: chalk.red('정말로 처음부터 다시 시작하시겠습니까? 현재 답변들이 모두 사라집니다.'),
-          initial: false
-        }, {
-          onCancel: handleCtrlC
-        });
+        const { restart } = await inquirer.prompt([
+          {
+            type: 'confirm',
+            name: 'restart',
+            message: chalk.red('정말로 처음부터 다시 시작하시겠습니까? 현재 답변들이 모두 사라집니다.'),
+            default: false
+          }
+        ]);
 
-        const confirmResult = response.restart;
+        const confirmResult = restart;
 
         if (confirmResult) {
           console.log(chalk.yellow('🔄 처음부터 다시 시작합니다...'));
@@ -598,26 +538,28 @@ class PRDGenerator {
     console.log(chalk.gray('   OpenAI API 키는 다음 링크에서 발급받을 수 있습니다:'));
     console.log(chalk.blue('   👉 https://platform.openai.com/account/api-keys\n'));
 
-    const response = await prompts({
-      type: 'password',
-      name: 'apiKey',
-      message: '🔑 OpenAI API 키를 입력해주세요 (sk-로 시작):',
-      validate: value => {
-        if (!value) return 'API 키를 입력해주세요.';
-        if (!value.startsWith('sk-')) return 'API 키는 sk-로 시작해야 합니다.';
-        if (value.length < 20) return 'API 키가 너무 짧습니다.';
-        return true;
+    const { apiKey } = await inquirer.prompt([
+      {
+        type: 'password',
+        name: 'apiKey',
+        message: '🔑 OpenAI API 키를 입력해주세요 (sk-로 시작):',
+        validate: value => {
+          if (!value) return 'API 키를 입력해주세요.';
+          if (!value.startsWith('sk-')) return 'API 키는 sk-로 시작해야 합니다.';
+          if (value.length < 20) return 'API 키가 너무 짧습니다.';
+          return true;
+        }
       }
-    });
+    ]);
 
-    if (!response.apiKey) {
+    if (!apiKey) {
       console.log(chalk.yellow('\n설정이 취소되었습니다. 나중에 다시 실행해주세요.'));
       process.exit(0);
     }
 
     // API 키 저장
     const { setConfigValue } = await import('./config.js');
-    setConfigValue('openai.apiKey', response.apiKey);
+    setConfigValue('openai.apiKey', apiKey);
 
     console.log(chalk.green('\n✅ API 키가 성공적으로 설정되었습니다!'));
     console.log(chalk.gray('이제 firstvibe를 다시 실행해주세요.\n'));
@@ -664,18 +606,18 @@ class PRDGenerator {
         this.currentQuestion = 1;
 
         // 초기 프로젝트 설명 입력
-        const response = await wrappedPrompts({
-          type: 'text',
-          name: 'description',
-          message: pastelColors.mint('만들고자 하는 프로젝트에 대해 간단히 설명해주세요:'),
-          validate: (input) => {
-            return input.trim() !== '' || '프로젝트 설명을 입력해주세요.';
+        const { description } = await inquirer.prompt([
+          {
+            type: 'input',
+            name: 'description',
+            message: pastelColors.mint('만들고자 하는 프로젝트에 대해 간단히 설명해주세요:'),
+            validate: (input) => {
+              return input.trim() !== '' || '프로젝트 설명을 입력해주세요.';
+            }
           }
-        }, {
-          onCancel: handleCtrlC
-        });
+        ]);
 
-        const initialInput = response.description;
+        const initialInput = description;
 
         // 첫 번째 질문 준비
         this.qaHistory.push({
@@ -983,21 +925,16 @@ program
       .action(async (options) => {
         try {
           if (!options.force) {
-            const response = await wrappedPrompts({
-              type: 'confirm',
-              name: 'reset',
-              message: chalk.red('정말로 모든 설정을 기본값으로 초기화하시겠습니까?'),
-              initial: false
-            }, {
-              onCancel: (prompt) => {
-                if (!prompt.sigint) {
-                  return disableEsc();
-                }
-                return handleCtrlC();
+            const { reset } = await inquirer.prompt([
+              {
+                type: 'confirm',
+                name: 'reset',
+                message: chalk.red('정말로 모든 설정을 기본값으로 초기화하시겠습니까?'),
+                default: false
               }
-            });
+            ]);
 
-            const confirmResult = response.reset;
+            const confirmResult = reset;
 
             if (!confirmResult) {
               console.log(chalk.yellow('취소되었습니다.'));
