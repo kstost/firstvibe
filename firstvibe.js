@@ -406,6 +406,7 @@ Progress through these 5 areas in order, customizing based on previous answers:
 - **Domain-Specific Transition**: Once problem domain is determined, prioritize core flows/policies/constraints of that domain.
 - **Complexity Control**: When multiple selection exceeds limit, briefly request to **keep only top items**.
 - **Mutual Exclusivity Guarantee**: When conflicting choices are presented/selected together, guide toward single selection consolidation.
+- **Question Dependency Management**: Carefully consider dependencies between questions. Ensure prerequisite information is gathered before asking dependent questions. For example, ask about target platform before platform-specific technical requirements, or establish user type before asking about user-specific features.
 
 ---
 
@@ -427,20 +428,6 @@ At section end, internally check missing items and prioritize补充未确定项�
 - **Core Features (MVP)**: Select essential flows and differentiating features within **caps**, while determining basic operational requirements.
 - **Non-functional/Technical Requirements**: Present **measurable or selectable items** like performance, availability, security, data, stack, deployment with quantitative/qualitative mixed choices (numerical in interval units).
 - **Business Goals**: Establish North Star metrics, monetization, launch scope, timeline. Include progressive, conservative, aggressive options reflecting organizational risk preferences and resource levels.
-
----
-
-## Completion Conditions and Deliverables
-Consider complete when either:  
-1) **${this.maxQuestions}** exhausted, or  
-2) Sufficient decisions gathered to meet core PRD/TRD fields.
-
-Upon completion, present **one sentence confirmation question** to user, and immediately generate drafts below upon positive response.
-
-- **PRD Draft**: Background/problem definition, target users, value proposition, scope (in/out), user scenarios, MVP features, success metrics, competition/differentiation, risks/assumptions  
-- **TRD Draft**: System overview, architecture overview, tech stack, data model overview, API/external integration, permissions/security, performance/availability targets, logging/monitoring, deployment/release strategy, testing/quality standards
-
-During document generation, don't extend descriptions but organize **selection results item-centrically**.
 
 ---
 
