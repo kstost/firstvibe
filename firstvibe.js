@@ -45,11 +45,13 @@ import {
   getCurrentMode
 } from "./config.js";
 
-// 설정을 로드하여 OpenAI 클라이언트 초기화
-const config = getEffectiveConfig();
-const openai = new OpenAI({
-  apiKey: config.openai.apiKey,
-});
+// OpenAI 클라이언트를 동적으로 생성하는 함수
+function createOpenAIClient() {
+  const config = getEffectiveConfig();
+  return new OpenAI({
+    apiKey: config.openai.apiKey,
+  });
+}
 
 const PRD_SYSTEM_PROMPT = `
 You are an AI Product Requirements Document (PRD) Expert. Your core role is to write a comprehensive Product Requirements Document (PRD) based on collected user requirements and answers.
@@ -263,6 +265,7 @@ class PRDGenerator {
 
     try {
       const effectiveConfig = getEffectiveConfig();
+      const openai = createOpenAIClient();
       const response = await openai.chat.completions.create({
         model: effectiveConfig.openai.prdModel,
         messages: [
@@ -483,6 +486,7 @@ Structure initial question choices to quickly differentiate product visions, wit
 
     try {
       const effectiveConfig = getEffectiveConfig();
+      const openai = createOpenAIClient();
       const response = await openai.chat.completions.create({
         model: effectiveConfig.openai.questionModel,
         messages: messages,
