@@ -4,10 +4,13 @@ import { getEffectiveConfig } from "./config.js";
 import ora from "ora";
 import chalk from "chalk";
 
-const config = getEffectiveConfig();
-const openai = new OpenAI({
-    apiKey: config.openai.apiKey,
-});
+// OpenAI 클라이언트를 동적으로 생성하는 함수
+function createOpenAIClient() {
+    const config = getEffectiveConfig();
+    return new OpenAI({
+        apiKey: config.openai.apiKey,
+    });
+}
 
 function generateMarkdown(todoData) {
     let md = '';
@@ -630,6 +633,7 @@ async function trdToTodo(trdContent, options = {}) {
     };
 
     try {
+        const openai = createOpenAIClient();
         const response = await openai.chat.completions.create({
             model,
             messages: [

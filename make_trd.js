@@ -3,10 +3,13 @@ import { getEffectiveConfig } from "./config.js";
 import ora from "ora";
 import chalk from "chalk";
 
-const config = getEffectiveConfig();
-const openai = new OpenAI({
-  apiKey: config.openai.apiKey,
-});
+// OpenAI 클라이언트를 동적으로 생성하는 함수
+function createOpenAIClient() {
+  const config = getEffectiveConfig();
+  return new OpenAI({
+    apiKey: config.openai.apiKey,
+  });
+}
 
 const SYSTEM_PROMPT = `
 You are an AI Development Workflow Design Expert. Your core role is to write a Technical Requirements Document (TRD) that an AI will use to perform software development tasks based on user requirements.
@@ -61,6 +64,7 @@ async function makeTRD(userRequirement, options = {}) {
   }).start();
 
   try {
+    const openai = createOpenAIClient();
     const response = await openai.chat.completions.create({
       model,
       messages: [
