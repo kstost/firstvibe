@@ -599,7 +599,7 @@ class PRDGenerator {
     console.log(chalk.blue('   👉 https://platform.openai.com/account/api-keys\n'));
 
     const response = await prompts({
-      type: 'invisible',
+      type: 'password',
       name: 'apiKey',
       message: '🔑 OpenAI API 키를 입력해주세요 (sk-로 시작):',
       validate: value => {
