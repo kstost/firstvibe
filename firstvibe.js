@@ -564,9 +564,10 @@ class PRDGenerator {
     setConfigValue('openai.apiKey', apiKey);
 
     console.log(chalk.green('\n✅ API 키가 성공적으로 설정되었습니다!'));
-    console.log(chalk.gray('이제 firstvibe를 다시 실행해주세요.\n'));
+    console.log(chalk.gray('이제 앱을 시작합니다...\n'));
 
-    process.exit(0);
+    // 앱 종료하지 않고 계속 실행
+    return;
   }
 
   async start() {
