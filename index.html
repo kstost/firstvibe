@@ -1,11 +1,386 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>firstvibe</title>
+    <title>firstvibe 📝 - 간단한 질문으로 PRD, TRD, TODO를 자동 생성</title>
+    <meta name="description" content="10개의 질문만으로 MVP 개발에 필요한 모든 문서를 AI가 자동 생성해드립니다.">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        .hero {
+            text-align: center;
+            padding: 80px 0;
+            color: white;
+        }
+        
+        .hero h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .hero .subtitle {
+            font-size: 1.4rem;
+            margin-bottom: 40px;
+            opacity: 0.9;
+        }
+        
+        .install-section {
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            margin: 40px auto;
+            max-width: 800px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .install-title {
+            font-size: 2rem;
+            margin-bottom: 20px;
+            color: #fff;
+            font-weight: 600;
+        }
+        
+        .install-command {
+            background: #1a1a1a;
+            color: #00ff41;
+            padding: 20px 30px;
+            border-radius: 12px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 1.8rem;
+            font-weight: bold;
+            text-align: center;
+            margin: 20px 0;
+            border: 2px solid #00ff41;
+            box-shadow: 0 8px 32px rgba(0,255,65,0.2);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .install-command:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(0,255,65,0.3);
+        }
+        
+        .copy-hint {
+            font-size: 0.9rem;
+            color: rgba(255,255,255,0.8);
+            margin-top: 10px;
+        }
+        
+        .main-content {
+            background: white;
+            margin-top: -40px;
+            border-radius: 40px 40px 0 0;
+            padding: 80px 0 60px;
+            box-shadow: 0 -10px 40px rgba(0,0,0,0.1);
+        }
+        
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 40px;
+            margin: 60px 0;
+        }
+        
+        .feature-card {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            border: 1px solid #f0f0f0;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+        }
+        
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+        }
+        
+        .feature-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        
+        .feature-desc {
+            color: #666;
+            line-height: 1.6;
+        }
+        
+        .steps {
+            background: #f8f9fa;
+            padding: 80px 0;
+            margin: 60px 0;
+            border-radius: 30px;
+        }
+        
+        .steps-title {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 60px;
+            color: #333;
+            font-weight: 600;
+        }
+        
+        .step {
+            display: flex;
+            align-items: center;
+            margin: 40px 0;
+            padding: 30px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        }
+        
+        .step-number {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-right: 30px;
+            flex-shrink: 0;
+        }
+        
+        .step-content h3 {
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        
+        .step-content p {
+            color: #666;
+        }
+        
+        .cta-section {
+            text-align: center;
+            padding: 80px 0;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            margin: 80px 0 0;
+        }
+        
+        .cta-title {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        
+        .cta-subtitle {
+            font-size: 1.2rem;
+            margin-bottom: 40px;
+            opacity: 0.9;
+        }
+        
+        .btn-cta {
+            background: white;
+            color: #667eea;
+            padding: 18px 40px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-cta:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(255,255,255,0.3);
+        }
+        
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            
+            .install-command {
+                font-size: 1.3rem;
+                padding: 15px 20px;
+            }
+            
+            .step {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .step-number {
+                margin-right: 0;
+                margin-bottom: 20px;
+            }
+        }
+    </style>
 </head>
 <body>
+    <div class="hero">
+        <div class="container">
+            <h1>firstvibe 📝</h1>
+            <p class="subtitle">간단한 질문으로 PRD, TRD, TODO를 자동 생성하는 AI 문서 생성 도구</p>
+            
+            <div class="install-section">
+                <h2 class="install-title">⚡ 지금 바로 시작하세요</h2>
+                <div class="install-command" onclick="copyToClipboard('npm i firstvibe -g')">
+                    npm i firstvibe -g
+                </div>
+                <p class="copy-hint">📋 클릭하여 복사</p>
+            </div>
+        </div>
+    </div>
     
+    <div class="main-content">
+        <div class="container">
+            <div class="features">
+                <div class="feature-card">
+                    <div class="feature-icon">📋</div>
+                    <h3 class="feature-title">인터랙티브 설문</h3>
+                    <p class="feature-desc">간단한 핵심 질문을 통해 프로젝트 요구사항을 수집합니다. 다중 선택이나 직접 입력으로 편리하게 답변하세요.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">🤖</div>
+                    <h3 class="feature-title">AI 기반 문서 생성</h3>
+                    <p class="feature-desc">OpenAI GPT를 활용해 PRD, TRD, TODO 문서를 자동으로 생성합니다. 각 문서별로 최적화된 프롬프트로 고품질 결과를 제공합니다.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">📄</div>
+                    <h3 class="feature-title">3단계 문서 파이프라인</h3>
+                    <p class="feature-desc">PRD → TRD → TODO 순서로 체계적으로 문서를 생성합니다. 각 단계가 이전 단계를 기반으로 발전된 내용을 만들어냅니다.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">⚙️</div>
+                    <h3 class="feature-title">환경변수 기반 설정</h3>
+                    <p class="feature-desc">GPT-5, GPT-4 등 모델별 세부 설정이 가능합니다. Verbosity와 Reasoning effort를 각 단계별로 독립적으로 조절할 수 있습니다.</p>
+                </div>
+            </div>
+            
+            <div class="steps">
+                <div class="container">
+                    <h2 class="steps-title">🚀 사용법</h2>
+                    
+                    <div class="step">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <h3>API 키 설정</h3>
+                            <p>firstvibe config set apikey [your-openai-api-key]</p>
+                        </div>
+                    </div>
+                    
+                    <div class="step">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <h3>문서 생성 시작</h3>
+                            <p>터미널에서 firstvibe 명령어를 실행하세요</p>
+                        </div>
+                    </div>
+                    
+                    <div class="step">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <h3>질문 응답</h3>
+                            <p>대상 사용자, 핵심 기능, 기술 스택 등에 대한 질문에 답변하세요</p>
+                        </div>
+                    </div>
+                    
+                    <div class="step">
+                        <div class="step-number">4</div>
+                        <div class="step-content">
+                            <h3>문서 완성</h3>
+                            <p>AI가 prd.md, trd.md, todo.md 파일을 자동으로 생성합니다</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="cta-section">
+        <div class="container">
+            <h2 class="cta-title">지금 바로 시작하세요! 🎯</h2>
+            <p class="cta-subtitle">코딩을 전혀 모르는 사람도 MVP 기획을 완성할 수 있습니다</p>
+            <button class="btn-cta" onclick="copyToClipboard('npm i firstvibe -g')">설치하고 시작하기</button>
+        </div>
+    </div>
+    
+    <script>
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(function() {
+                // 복사 성공 피드백
+                const button = event.target;
+                const originalText = button.textContent;
+                button.textContent = '📋 복사 완료!';
+                button.style.background = '#00ff41';
+                button.style.color = '#000';
+                
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.style.background = '#1a1a1a';
+                    button.style.color = '#00ff41';
+                }, 2000);
+            }).catch(function(err) {
+                console.error('복사 실패: ', err);
+            });
+        }
+        
+        // 스크롤 애니메이션
+        window.addEventListener('scroll', () => {
+            const cards = document.querySelectorAll('.feature-card');
+            cards.forEach(card => {
+                const rect = card.getBoundingClientRect();
+                const isVisible = rect.top < window.innerHeight && rect.bottom > 0;
+                
+                if (isVisible) {
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }
+            });
+        });
+        
+        // 초기 애니메이션 설정
+        document.addEventListener('DOMContentLoaded', () => {
+            const cards = document.querySelectorAll('.feature-card');
+            cards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(30px)';
+                card.style.transition = `opacity 0.6s ease ${index * 0.1}s, transform 0.6s ease ${index * 0.1}s`;
+            });
+        });
+    </script>
 </body>
 </html>
