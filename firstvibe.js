@@ -541,11 +541,27 @@ class PRDGenerator {
         type: 'input',
         name: 'apiKey',
         message: '🔑 OpenAI API 키를 입력해주세요 (sk-로 시작):',
-        validate: value => {
-          if (!value) return 'API 키를 입력해주세요.';
-          if (!value.startsWith('sk-')) return 'API 키는 sk-로 시작해야 합니다.';
-          if (value.length < 20) return 'API 키가 너무 짧습니다.';
+        validate: (value, answers) => {
+          if (!value) {
+            // 빈 값일 때 입력 필드 초기화
+            answers.apiKey = '';
+            return 'API 키를 입력해주세요.';
+          }
+          if (!value.startsWith('sk-')) {
+            // 잘못된 형식일 때 입력 필드 초기화
+            answers.apiKey = '';
+            return 'API 키는 sk-로 시작해야 합니다.';
+          }
+          if (value.length < 20) {
+            // 너무 짧을 때 입력 필드 초기화
+            answers.apiKey = '';
+            return 'API 키가 너무 짧습니다.';
+          }
           return true;
+        },
+        filter: (input) => {
+          // 검증 실패 시 빈 문자열 반환
+          return input;
         },
         transformer: (input) => {
           // 입력할 때 * 표시
