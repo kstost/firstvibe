@@ -1,383 +1,57 @@
+
 <!DOCTYPE html>
 <html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>firstvibe 📝 - 아이디어를 MVP 토대로 확장시키는 AI 문서 생성 도구</title>
-    <meta name="description" content="한 줄짜리 아이디어를 PRD, TRD, TODO로 확장하여 Cursor, Claude Code 같은 AI Coding Agent가 바로 개발할 수 있도록 준비해드립니다.">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>firstvibe — 한 문장 아이디어로 PRD/TRD/Todo 초안 생성</title>
+    <meta name="description" content="한 문장을 입력하면 Q&A로 확장해 MVP의 토대를 자동으로 만들어드립니다. 쉽고 간편하고 무료." />
     
     <!-- Open Graph / Facebook -->
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://kstost.github.io/firstvibe/">
-    <meta property="og:title" content="firstvibe 📝 - 아이디어를 MVP 토대로 확장시키는 AI 문서 생성 도구">
-    <meta property="og:description" content="한 줄짜리 아이디어를 PRD, TRD, TODO로 확장하여 Cursor, Claude Code 같은 AI Coding Agent가 바로 개발할 수 있도록 준비해드립니다.">
-    <meta property="og:image" content="https://kstost.github.io/firstvibe/og-image.png">
-    <meta property="og:site_name" content="firstvibe">
-    <meta property="og:locale" content="ko_KR">
-    
-    <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:url" content="https://kstost.github.io/firstvibe/">
-    <meta property="twitter:title" content="firstvibe 📝 - 아이디어를 MVP 토대로 확장시키는 AI 문서 생성 도구">
-    <meta property="twitter:description" content="한 줄짜리 아이디어를 PRD, TRD, TODO로 확장하여 Cursor, Claude Code 같은 AI Coding Agent가 바로 개발할 수 있도록 준비해드립니다.">
-    <meta property="twitter:image" content="https://kstost.github.io/firstvibe/og-image.png">
-    <meta property="twitter:creator" content="@코드깎는노인">
-    
-    <!-- Additional SEO -->
-    <meta name="keywords" content="AI, PRD, TRD, TODO, 문서생성, Cursor, Claude Code, AI Coding Agent, MVP, 아이디어, 개발도구, OpenAI">
-    <meta name="author" content="코드깎는노인">
-    <meta name="robots" content="index, follow">
-    <link rel="canonical" href="https://kstost.github.io/firstvibe/">
-    
-    <!-- Schema.org structured data -->
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "SoftwareApplication",
-      "name": "firstvibe",
-      "description": "한 줄짜리 아이디어를 PRD, TRD, TODO로 확장하여 AI Coding Agent가 바로 개발할 수 있도록 준비해주는 도구",
-      "url": "https://kstost.github.io/firstvibe/",
-      "applicationCategory": "DeveloperApplication",
-      "operatingSystem": "Cross-platform",
-      "offers": {
-        "@type": "Offer",
-        "price": "0",
-        "priceCurrency": "USD"
-      },
-      "creator": {
-        "@type": "Person",
-        "name": "코드깎는노인"
-      }
-    }
-    </script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
-        
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-            line-height: 1.6;
-            color: #212121;
-            background: #1976d2;
-            min-height: 100vh;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
-        }
-        
-        .hero {
-            text-align: center;
-            padding: 80px 0;
-            color: white;
-        }
-        
-        .hero h1 {
-            font-size: 3.5rem;
-            font-weight: 700;
-            margin-bottom: 20px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-        }
-        
-        .hero .subtitle {
-            font-size: 1.4rem;
-            margin-bottom: 40px;
-            opacity: 0.9;
-        }
-        
-        .install-section {
-            background: rgba(255,255,255,0.95);
-            border-radius: 8px;
-            padding: 40px;
-            margin: 40px auto;
-            max-width: 800px;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.12), 0 4px 8px rgba(0,0,0,0.08);
-        }
-        
-        .install-title {
-            font-size: 2rem;
-            margin-bottom: 20px;
-            color: #1976d2;
-            font-weight: 500;
-        }
-        
-        .install-command {
-            background: #263238;
-            color: #4caf50;
-            padding: 20px 30px;
-            border-radius: 4px;
-            font-family: 'Roboto Mono', Monaco, 'Menlo', monospace;
-            font-size: 1.8rem;
-            font-weight: 500;
-            text-align: center;
-            margin: 20px 0;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.12);
-            cursor: pointer;
-            transition: all 0.2s cubic-bezier(0.4, 0.0, 0.2, 1);
-        }
-        
-        .install-command:hover {
-            box-shadow: 0 4px 8px rgba(0,0,0,0.16);
-            transform: translateY(-1px);
-        }
-        
-        .copy-hint {
-            font-size: 1.2rem;
-            color: #616161;
-            margin-top: 10px;
-        }
-        
-        .main-content {
-            background: #fafafa;
-            margin-top: 0;
-            padding: 80px 0 60px;
-        }
-        
-        .features {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 24px;
-            margin: 60px 0;
-        }
-        
-        .feature-card {
-            background: white;
-            padding: 32px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.12), 0 8px 16px rgba(0,0,0,0.08);
-            border: none;
-            transition: all 0.2s cubic-bezier(0.4, 0.0, 0.2, 1);
-        }
-        
-        .feature-card:hover {
-            box-shadow: 0 4px 8px rgba(0,0,0,0.12), 0 16px 24px rgba(0,0,0,0.12);
-            transform: translateY(-2px);
-        }
-        
-        .feature-icon {
-            font-size: 3rem;
-            margin-bottom: 20px;
-        }
-        
-        .feature-title {
-            font-size: 1.5rem;
-            font-weight: 500;
-            margin-bottom: 16px;
-            color: #212121;
-        }
-        
-        .feature-desc {
-            color: #757575;
-            line-height: 1.5;
-            font-weight: 400;
-        }
-        
-        
-        .cta-section {
-            text-align: center;
-            padding: 40px;
-            background: #1976d2;
-            color: white;
-            margin: 0;
-        }
-        
-        .cta-title {
-            font-size: 2.5rem;
-            margin-bottom: 20px;
-            font-weight: 400;
-        }
-        
-        .cta-subtitle {
-            font-size: 1.2rem;
-            margin-bottom: 40px;
-            opacity: 0.9;
-        }
-        
-        .btn-cta {
-            background: white;
-            color: #1976d2;
-            padding: 12px 32px;
-            border: none;
-            border-radius: 4px;
-            font-size: 1.1rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s cubic-bezier(0.4, 0.0, 0.2, 1);
-            text-decoration: none;
-            display: inline-block;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.12);
-        }
-        
-        .btn-cta:hover {
-            box-shadow: 0 4px 8px rgba(0,0,0,0.16);
-            transform: translateY(-1px);
-        }
-        
-        .toast {
-            position: fixed;
-            top: 24px;
-            right: 24px;
-            background: #4caf50;
-            color: white;
-            padding: 16px 24px;
-            border-radius: 4px;
-            font-weight: 500;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.16);
-            z-index: 1000;
-            opacity: 0;
-            transform: translateY(-20px);
-            transition: all 0.2s cubic-bezier(0.4, 0.0, 0.2, 1);
-        }
-        
-        .toast.show {
-            opacity: 1;
-            transform: translateY(0);
-        }
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://firstvibe.site/" />
+    <meta property="og:title" content="firstvibe — 한 문장 아이디어로 PRD/TRD/Todo 초안 생성" />
+    <meta property="og:description" content="한 문장을 입력하면 Q&A로 확장해 MVP의 토대를 자동으로 만들어드립니다. 쉽고 간편하고 무료." />
+    <meta property="og:image" content="https://picsum.photos/1200/630" />
 
-        @media (max-width: 768px) {
-            .hero h1 {
-                font-size: 2.5rem;
-            }
-            
-            .install-command {
-                font-size: 1.3rem;
-                padding: 15px 20px;
-            }
-            
-            
-            .toast {
-                right: 16px;
-                left: 16px;
-                right: 16px;
-            }
-        }
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://firstvibe.site/" />
+    <meta property="twitter:title" content="firstvibe — 한 문장 아이디어로 PRD/TRD/Todo 초안 생성" />
+    <meta property="twitter:description" content="한 문장을 입력하면 Q&A로 확장해 MVP의 토대를 자동으로 만들어드립니다. 쉽고 간편하고 무료." />
+    <meta property="twitter:image" content="https://picsum.photos/1200/630" />
+    
+    <link rel="canonical" href="https://firstvibe.site/" />
+    <meta name="robots" content="index, follow" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      :root {
+        --focus-ring-color: #A3D3FF;
+      }
+      .focus-ring {
+        outline: 2px solid transparent;
+        outline-offset: 2px;
+      }
+      .focus-ring:focus-visible {
+        box-shadow: 0 0 0 2px var(--focus-ring-color);
+      }
     </style>
+
+  <script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@^19.1.1",
+    "react-dom/": "https://esm.sh/react-dom@^19.1.1/",
+    "react/": "https://esm.sh/react@^19.1.1/",
+    "react-dom": "https://esm.sh/react-dom@^19.1.1"
+  }
+}
+</script>
+  <script type="module" crossorigin src="./assets/index-Bapi28sC.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-tn0RQdqM.css">
 </head>
-<body>
-    <div class="hero">
-        <div class="container">
-            <h1>firstvibe 📝</h1>
-            <p style="font-size: 1.4rem; color: rgba(255,255,255,0.9); margin-top: 20px; font-weight: 500;">지금 바로 시작하세요</p>
-            <p class="subtitle">당신의 한문장의 아이디어를 확장시켜 MVP로 만들기위한 토대를 만들어드립니다</p>
-            
-            <div class="install-section">
-                <h2 class="install-title">⚡ 지금 바로 시작하세요</h2>
-                <div class="install-command" onclick="copyToClipboard('npx firstvibe')">
-                    npx firstvibe
-                </div>
-                <p style="font-size: 1.2rem; color: #757575; margin-top: 15px;">
-                    💡 firstvibe는 Node.js를 필요로 합니다. 설치되지 않았다면 <a href="https://nodejs.org/ko/download" target="_blank" style="color: #1976d2; text-decoration: none; font-weight: 500;">여기서 다운로드</a>하세요.
-                </p>
-            </div>
-        </div>
-    </div>
-    
-    <div class="main-content">
-        <div class="container">
-            <div style="text-align: center; padding: 0 0 60px; max-width: 800px; margin: 0 auto;">
-                <p style="font-size: 1.2rem; color: #424242; line-height: 1.6; margin-bottom: 0; font-weight: 400;">
-                    당신이 가진 한 줄짜리 아이디어를 구체적인 실행 계획으로 확장해드립니다. 아이디어의 핵심을 빠르게 정리하고, 필요한 기능과 구조를 잡아 <strong style="color: #1976d2;">PRD(제품요구사항), TRD(기술요구사항), TodoList(개발할일목록)</strong>로 만들어드립니다. 완성된 문서를 통해 <strong style="color: #1976d2;">Cursor, Claude Code</strong>와 같은 AI Coding Agent가 실제 개발을 수행할 수 있도록 준비합니다.
-                </p>
-            </div>
-            <div class="features">
-                <div class="feature-card">
-                    <div class="feature-icon">💡</div>
-                    <h3 class="feature-title">아이디어 확장</h3>
-                    <p class="feature-desc">한 줄짜리 아이디어에서 시작해 체계적인 질문을 통해 구체적인 비전으로 발전시킵니다. 막연했던 생각이 명확한 제품 계획으로 변화하는 과정을 경험하세요.</p>
-                </div>
-                
-                <div class="feature-card">
-                    <div class="feature-icon">🤖</div>
-                    <h3 class="feature-title">AI 기반 문서 생성</h3>
-                    <p class="feature-desc">OpenAI GPT를 활용해 PRD, TRD, TODO 문서를 자동으로 생성합니다. 각 문서별로 최적화된 프롬프트로 고품질 결과를 제공합니다.</p>
-                </div>
-                
-                <div class="feature-card">
-                    <div class="feature-icon">🤝</div>
-                    <h3 class="feature-title">AI Agent 연동 준비</h3>
-                    <p class="feature-desc">생성된 PRD, TRD, TodoList는 Cursor, Claude Code와 같은 AI Coding Agent가 바로 이해하고 개발에 활용할 수 있는 형태로 구성됩니다. 아이디어부터 실제 코드까지 완전한 자동화 워크플로우를 완성하세요.</p>
-                </div>
-                
-            </div>
-            
-        </div>
-    </div>
-    
-    <div class="cta-section">
-        <div class="container">
-            <p style="font-size: 1.2rem; opacity: 1;">made with ❤️‍🔥 by 코드깎는노인</p>
-        </div>
-    </div>
-    
-    <script>
-        function showToast(message) {
-            // 기존 토스트가 있다면 제거
-            const existingToast = document.querySelector('.toast');
-            if (existingToast) {
-                existingToast.remove();
-            }
-            
-            // 새 토스트 생성
-            const toast = document.createElement('div');
-            toast.className = 'toast';
-            toast.textContent = message;
-            document.body.appendChild(toast);
-            
-            // 애니메이션으로 표시
-            setTimeout(() => {
-                toast.classList.add('show');
-            }, 100);
-            
-            // 3초 후 제거
-            setTimeout(() => {
-                toast.classList.remove('show');
-                setTimeout(() => {
-                    if (toast.parentNode) {
-                        toast.parentNode.removeChild(toast);
-                    }
-                }, 300);
-            }, 3000);
-        }
-        
-        function copyToClipboard(text) {
-            navigator.clipboard.writeText(text).then(function() {
-                showToast('📋 명령어가 복사되었습니다! 터미널에 붙여넣고 실행하세요');
-            }).catch(function(err) {
-                console.error('복사 실패: ', err);
-                showToast('❌ 복사에 실패했습니다');
-            });
-        }
-        
-        // 스크롤 애니메이션
-        window.addEventListener('scroll', () => {
-            const cards = document.querySelectorAll('.feature-card');
-            cards.forEach(card => {
-                const rect = card.getBoundingClientRect();
-                const isVisible = rect.top < window.innerHeight && rect.bottom > 0;
-                
-                if (isVisible) {
-                    card.style.opacity = '1';
-                    card.style.transform = 'translateY(0)';
-                }
-            });
-        });
-        
-        // 초기 애니메이션 설정
-        document.addEventListener('DOMContentLoaded', () => {
-            const cards = document.querySelectorAll('.feature-card');
-            cards.forEach((card, index) => {
-                card.style.opacity = '0';
-                card.style.transform = 'translateY(30px)';
-                card.style.transition = `opacity 0.6s ease ${index * 0.1}s, transform 0.6s ease ${index * 0.1}s`;
-            });
-        });
-    </script>
-</body>
+  <body class="bg-slate-50 text-slate-800 antialiased">
+    <div id="root"></div>
+    <div id="toast-portal"></div>
+  </body>
 </html>
