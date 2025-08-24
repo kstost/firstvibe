@@ -33,7 +33,7 @@ dist/
 CLAUDE.md
 .commit_message.txt
 prd.md
-todo.md
+todo.yaml
 trd.md
 
 .DS_Store
@@ -41,3 +41,5 @@ index.html
 bundle.js
 CNAME
 assets/
+
+.firstvibe_log/

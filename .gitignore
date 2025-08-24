@@ -3,6 +3,8 @@ node_modules
 .vscode
 CLAUDE.md
 prd.md
-todo.md
+todo.yaml
 trd.md
 .DS_Store
+
+.firstvibe_log/

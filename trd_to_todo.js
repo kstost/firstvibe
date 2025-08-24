@@ -1,14 +1,37 @@
-import OpenAI from "openai";
 import fs from "fs";
-import { getEffectiveConfig } from "./config.js";
-import ora from "ora";
+import { generateTODO } from "./ai_api.js";
 import chalk from "chalk";
+import { TODO_SYSTEM_PROMPT } from "./system_prompts.js";
+import { getEffectiveConfig } from "./config.js";
+import YAML from "yaml";
 
-// OpenAI 클라이언트를 동적으로 생성하는 함수
-function createOpenAIClient() {
-    const config = getEffectiveConfig();
-    return new OpenAI({
-        apiKey: config.openai.apiKey,
+function removeEmptyArrays(obj) {
+    if (Array.isArray(obj)) {
+        return obj.map(item => removeEmptyArrays(item)).filter(item => item !== null);
+    } else if (obj !== null && typeof obj === 'object') {
+        const cleaned = {};
+        for (const [key, value] of Object.entries(obj)) {
+            const cleanedValue = removeEmptyArrays(value);
+            // 빈 배열이 아닌 경우에만 추가
+            if (!Array.isArray(cleanedValue) || cleanedValue.length > 0) {
+                cleaned[key] = cleanedValue;
+            }
+        }
+        return cleaned;
+    }
+    return obj;
+}
+
+function generateYAML(todoData) {
+    // 빈 배열을 가진 키 제거 후 YAML로 변환
+    const cleanedData = removeEmptyArrays(todoData);
+    return YAML.stringify(cleanedData, {
+        indent: 2,
+        lineWidth: 120,
+        minContentWidth: 40,
+        doubleQuotedAsJSON: false,
+        doubleQuotedMinMultiLineLength: 40,
+        blockQuote: 'literal'
     });
 }
 
@@ -16,8 +39,7 @@ function generateMarkdown(todoData) {
     let md = '';
 
     // Project Information
-    md += `# ${todoData.project.name}\n\n`;
-    md += `**Version:** ${todoData.project.version}\n\n`;
+    md += `# ${todoData.project.name} TRD TODO List\n\n`;
     md += `${todoData.project.description}\n\n`;
 
     // Table of Contents
@@ -27,9 +49,7 @@ function generateMarkdown(todoData) {
     md += `  - [우선순위별 작업 분포](#우선순위별-작업-분포)\n`;
     md += `- [작업 목록](#작업-목록)\n`;
     md += `- [구현 가이드](#구현-가이드)\n`;
-    md += `- [전역 고려사항](#전역-고려사항)\n`;
     md += `- [실행 순서](#실행-순서)\n`;
-    md += `- [메타데이터](#메타데이터)\n\n`;
 
     // Project Overview
     md += `## 프로젝트 개요\n\n`;
@@ -59,7 +79,6 @@ function generateMarkdown(todoData) {
     todoData.tasks.forEach(task => {
         md += `### ${task.title} (${task.id})\n\n`;
         md += `- **우선순위:** ${task.priority}\n`;
-        md += `- **상태:** ${task.status}\n`;
         md += `- **실행 순서:** ${task.order}\n\n`;
 
         md += `**설명:**\n${task.description}\n\n`;
@@ -152,39 +171,6 @@ function generateMarkdown(todoData) {
         md += `---\n\n`;
     });
 
-    // Global Considerations
-    md += `## 전역 고려사항\n\n`;
-
-    md += `### 브라우저 호환성\n`;
-    todoData.global_considerations.browser_compatibility.forEach(browser => {
-        md += `- ${browser}\n`;
-    });
-    md += `\n`;
-
-    md += `### 성능 요구사항\n`;
-    todoData.global_considerations.performance_requirements.forEach(req => {
-        md += `- ${req}\n`;
-    });
-    md += `\n`;
-
-    md += `### 접근성 표준\n`;
-    todoData.global_considerations.accessibility_standards.forEach(std => {
-        md += `- ${std}\n`;
-    });
-    md += `\n`;
-
-    md += `### 오류 처리 정책\n`;
-    todoData.global_considerations.error_handling_policies.forEach(policy => {
-        md += `- ${policy}\n`;
-    });
-    md += `\n`;
-
-    md += `### 메모리 관리\n`;
-    todoData.global_considerations.memory_management.forEach(mgmt => {
-        md += `- ${mgmt}\n`;
-    });
-    md += `\n`;
-
     // Execution Order
     md += `## 실행 순서\n\n`;
     md += `**요약:** ${todoData.execution_order.summary}\n\n`;
@@ -199,36 +185,11 @@ function generateMarkdown(todoData) {
         md += `\n`;
     });
 
-    // Metadata
-    md += `## 메타데이터\n\n`;
-    md += `- **작성자:** ${todoData.metadata.author}\n`;
-    md += `- **버전:** ${todoData.metadata.version}\n`;
-    md += `- **생성일:** ${todoData.metadata.created_at}\n`;
-    md += `- **수정일:** ${todoData.metadata.updated_at}\n`;
-
     return md;
 }
 
-const SYSTEM_PROMPT = `당신은 AI 개발 워크플로우 설계 전문가입니다. 사용자가 제시하는 TRD(Technical Requirements Document)를 달성하기 위해 AI가 소프트웨어 개발 작업을 수행할 때 사용할 To-Do List를 작성하는 것이 당신의 핵심 역할입니다.
-당신이 작성하는 To-Do List는 AI 코딩 에이전트에 의해 읽히고 사용됩니다.
-
-## 작성 지침
-- 큰 단계, 그리고 큰단계에 속하는 작은단계로 과정을 나눠서 세분화한다.
-- 각 작업의 전후 관계와 의존성을 고려하여 만든다
-`;
 
 async function trdToTodo(trdContent, options = {}) {
-    const effectiveConfig = getEffectiveConfig();
-    const {
-        model = effectiveConfig.openai.todoModel,
-        verbosity = effectiveConfig.openai.todoVerbosity,
-        reasoning_effort = effectiveConfig.openai.todoReasoningEffort
-    } = options;
-
-    const spinner = ora({
-        text: chalk.cyan('TODO 목록을 생성하고 있습니다...'),
-        color: 'cyan'
-    }).start();
 
     const json_schema = {
         "name": "project_todo_list",
@@ -248,15 +209,10 @@ async function trdToTodo(trdContent, options = {}) {
                             "type": "string",
                             "description": "프로젝트의 목적과 주요 기능을 간략히 설명하는 텍스트. 프로젝트 범위와 최종 목표를 명확히 기술하여 개발 방향성 제시. 이해관계자들이 프로젝트의 가치와 목적을 이해할 수 있도록 작성"
                         },
-                        "version": {
-                            "type": "string",
-                            "description": "현재 프로젝트 문서의 버전. 의미적 버전 관리(Semantic Versioning) 형식 권장 (예: '1.0.0', '2.1.3'). 문서의 변경 이력을 추적하고 호환성을 관리하는 데 사용"
-                        }
                     },
                     "required": [
                         "name",
                         "description",
-                        "version"
                     ],
                     "additionalProperties": false
                 },
@@ -399,16 +355,7 @@ async function trdToTodo(trdContent, options = {}) {
                                 "type": "integer",
                                 "description": "전체 프로젝트에서 이 작업의 실행 순서를 나타내는 정수. 의존성과 함께 작업 스케줄링의 기준이 되며, 프로젝트 타임라인 수립과 마일스톤 설정에 사용됩니다."
                             },
-                            "status": {
-                                "type": "string",
-                                "enum": [
-                                    "not_started",
-                                    "in_progress",
-                                    "completed",
-                                    "blocked"
-                                ],
-                                "description": "작업의 현재 진행 상태를 나타내는 열거값. not_started: 아직 시작하지 않은 상태, in_progress: 현재 진행 중인 상태, completed: 완료된 상태, blocked: 의존성 미완료 등으로 차단된 상태"
-                            }
+
                         },
                         "required": [
                             "id",
@@ -421,7 +368,6 @@ async function trdToTodo(trdContent, options = {}) {
                             "completion_criteria",
                             "risks",
                             "order",
-                            "status"
                         ],
                         "additionalProperties": false
                     }
@@ -494,55 +440,7 @@ async function trdToTodo(trdContent, options = {}) {
                         "additionalProperties": false
                     }
                 },
-                "global_considerations": {
-                    "type": "object",
-                    "description": "프로젝트 전체에 적용되는 공통 요구사항과 제약사항. 모든 작업에서 일관되게 고려해야 할 기술적, 비즈니스적 조건들을 정의하여 프로젝트의 통일성과 품질을 보장합니다.",
-                    "properties": {
-                        "browser_compatibility": {
-                            "type": "array",
-                            "description": "지원해야 하는 브라우저와 버전 목록, 그리고 각 브라우저별 특별 고려사항. 폴백 처리와 기능 감지 전략을 포함하여 광범위한 사용자 환경에서 일관된 경험을 제공하기 위한 요구사항",
-                            "items": {
-                                "type": "string"
-                            }
-                        },
-                        "performance_requirements": {
-                            "type": "array",
-                            "description": "시스템이 만족해야 하는 성능 기준과 최적화 방향. 로딩 시간, 메모리 사용량, 반응성 등의 정량적 목표와 달성 방법을 명시하여 사용자 경험의 품질을 보장",
-                            "items": {
-                                "type": "string"
-                            }
-                        },
-                        "accessibility_standards": {
-                            "type": "array",
-                            "description": "접근성 준수 기준과 구현 가이드라인. WCAG 기준, 키보드 탐색, 스크린 리더 지원 등 장애를 가진 사용자를 포함하여 모든 사용자가 제품을 원활하게 사용할 수 있도록 하는 포용적 설계 요구사항",
-                            "items": {
-                                "type": "string"
-                            }
-                        },
-                        "error_handling_policies": {
-                            "type": "array",
-                            "description": "시스템 전반의 오류 처리 원칙과 정책. 오류 분류, 사용자 알림 방식, 복구 전략, 로깅 방식 등 일관된 오류 관리 체계를 통해 안정적인 사용자 경험과 효율적인 디버깅을 지원",
-                            "items": {
-                                "type": "string"
-                            }
-                        },
-                        "memory_management": {
-                            "type": "array",
-                            "description": "메모리 효율적 사용과 누수 방지를 위한 원칙과 방법론. 객체 생명주기 관리, 이벤트 리스너 정리, 대용량 데이터 처리 전략 등을 통해 장시간 사용 시에도 안정적인 성능을 유지",
-                            "items": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "required": [
-                        "browser_compatibility",
-                        "performance_requirements",
-                        "accessibility_standards",
-                        "error_handling_policies",
-                        "memory_management"
-                    ],
-                    "additionalProperties": false
-                },
+
                 "execution_order": {
                     "type": "object",
                     "description": "프로젝트의 체계적인 실행 전략과 단계별 진행 계획. 작업 간 의존성을 고려한 최적의 실행 순서와 병렬 처리 가능성을 정의하여 효율적인 프로젝트 진행을 보장합니다.",
@@ -587,90 +485,57 @@ async function trdToTodo(trdContent, options = {}) {
                         "phases"
                     ],
                     "additionalProperties": false
-                },
-                "metadata": {
-                    "type": "object",
-                    "description": "문서의 생성 및 관리와 관련된 메타 정보. 버전 관리, 변경 이력 추적, 책임 소재 명확화를 위한 관리 데이터로, 문서의 신뢰성과 추적 가능성을 보장합니다.",
-                    "properties": {
-                        "created_at": {
-                            "type": "string",
-                            "format": "date-time",
-                            "description": "문서가 최초 생성된 일시. ISO 8601 형식으로 기록하여 정확한 시점 추적 가능. 예: '2024-03-15T09:30:00Z'. 문서의 연대기와 버전 히스토리 관리에 필수적인 정보"
-                        },
-                        "updated_at": {
-                            "type": "string",
-                            "format": "date-time",
-                            "description": "문서가 마지막으로 수정된 일시. 변경 사항의 최신성을 확인하고 문서의 현재성을 판단하는 기준. 협업 시 최신 버전 식별과 동기화에 중요한 역할"
-                        },
-                        "author": {
-                            "type": "string",
-                            "description": "문서를 작성한 주 책임자의 이름이나 식별자. 문서에 대한 문의나 승인이 필요할 때 연락할 담당자를 명시하여 책임 소재를 명확히 함"
-                        },
-                        "version": {
-                            "type": "string",
-                            "description": "문서의 버전 번호. 의미적 버전 관리 체계를 따라 주요 변경(major), 기능 추가(minor), 버그 수정(patch)을 구분하여 관리. 예: '1.2.3'"
-                        }
-                    },
-                    "required": [
-                        "created_at",
-                        "updated_at",
-                        "author",
-                        "version"
-                    ],
-                    "additionalProperties": false
                 }
             },
             "required": [
                 "project",
                 "tasks",
                 "implementation_guides",
-                "global_considerations",
-                "execution_order",
-                "metadata"
+                "execution_order"
             ],
             "additionalProperties": false
         }
     };
 
-    try {
-        const openai = createOpenAIClient();
-        const response = await openai.chat.completions.create({
-            model,
-            messages: [
+    const input = [
+        {
+            "role": "developer",
+            "content": [
                 {
-                    "role": "developer",
-                    "content": [
-                        {
-                            "type": "text",
-                            "text": SYSTEM_PROMPT
-                        }
-                    ]
-                },
-                {
-                    "role": "user",
-                    "content": [
-                        {
-                            "type": "text",
-                            "text": trdContent
-                        }
-                    ]
+                    "type": "input_text",
+                    "text": TODO_SYSTEM_PROMPT
                 }
-            ],
-            response_format: {
-                "type": "json_schema",
-                json_schema
-            },
-            verbosity,
-            reasoning_effort
-        });
+            ]
+        },
+        {
+            "role": "user",
+            "content": [
+                {
+                    "type": "input_text",
+                    "text": trdContent
+                }
+            ]
+        }
+    ];
 
-        spinner.stop();
-        const todoData = JSON.parse(response.choices[0].message.content);
-        const markdown = generateMarkdown(todoData);
+    try {
+        const todoData = await generateTODO(input, json_schema);
 
-        return { todoData, markdown };
+        // 제공자에 따라 다른 출력 형식 사용
+        const effectiveConfig = getEffectiveConfig();
+        const provider = effectiveConfig.provider || 'openai';
+
+        let output;
+        if (true || provider === 'gemini') {
+            // Gemini 사용 시 YAML 형식으로 변환
+            output = generateYAML(todoData);
+        } else {
+            // OpenAI 또는 기타 제공자는 Markdown 형식 사용
+            output = generateMarkdown(todoData);
+        }
+
+        return { todoData, markdown: output };
     } catch (error) {
-        spinner.stop();
         console.error(chalk.red('❌ TODO 생성 중 오류가 발생했습니다:'), error.message);
         throw error;
     }
