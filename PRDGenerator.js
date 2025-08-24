@@ -732,7 +732,7 @@ class PRDGenerator {
       }
 
     } catch (error) {
-      console.log('This is error spot!', error);
+      // console.log('This is error spot!', error);
       // SIGINT (Ctrl+C) 에러인 경우 우아하게 종료
       if (error.message.includes('User force closed') || error.message.includes('SIGINT')) {
         console.log(pastelColors.peach('\n👋 vibe quitting'));
