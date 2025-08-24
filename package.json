@@ -1,6 +1,6 @@
 {
   "name": "firstvibe",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "description": "쉽게 PRD, TRD, TODO List를 만들 수 있는 vibe document 생성 도구",
   "main": "firstvibe.js",
   "type": "module",
@@ -13,12 +13,12 @@
     "node": ">= 14.0.0",
     "npm": ">= 6.0.0"
   },
-  "homepage": "https://github.com/username/firstvibe#readme",
+  "homepage": "https://github.com/kstost/firstvibe#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/username/firstvibe.git"
+    "url": "git+https://github.com/kstost/firstvibe.git"
   },
-  "bugs": "https://github.com/username/firstvibe/issues",
+  "bugs": "https://github.com/kstost/firstvibe/issues",
   "keywords": [
     "prd",
     "trd",
