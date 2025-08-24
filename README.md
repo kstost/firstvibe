@@ -4,7 +4,6 @@
 당신의 한 문장의 아이디어를 확장시켜 MVP로 만들기 위한 토대를 만들어드립니다.
 
 [![npm version](https://badge.fury.io/js/firstvibe.svg)](https://badge.fury.io/js/firstvibe)
-[![Node.js CI](https://github.com/kstost/firstvibe/workflows/Node.js%20CI/badge.svg)](https://github.com/kstost/firstvibe/actions)
 [![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL%203.0-blue.svg)](https://opensource.org/licenses/AGPL-3.0)
 
 **🌐 공식 웹사이트**: [https://firstvibe.dev/](https://firstvibe.dev/)  
@@ -208,7 +207,7 @@ firstvibe config reset
 firstvibe config mode cheap
 firstvibe -q 5 "소셜 독서 플랫폼"
 ```
-**결과**: 5분 내에 간단한 MVP 계획 완성
+**결과**: 빠른 MVP 계획 완성
 
 ### 🏗️ 시나리오 2: 본격적인 프로젝트 시작
 ```bash
@@ -271,7 +270,6 @@ echo "AI 기반 운동 코칭 앱" | firstvibe --questions 10
 
 ### 💰 비용 관련
 - OpenAI/Google API 사용으로 **토큰 기반 비용 발생**
-- `expensive` 모드는 `cheap` 모드 대비 **3-5배 비용**
 - 질문 수가 많을수록, verbosity가 높을수록 비용 증가
 
 ### 📝 결과물 품질
@@ -282,7 +280,6 @@ echo "AI 기반 운동 코칭 앱" | firstvibe --questions 10
 ### 🔧 기술적 제한
 - API 키 필수 (OpenAI 또는 Google)
 - 인터넷 연결 필수
-- Node.js 18+ 권장
 
 ---
 
@@ -343,37 +340,6 @@ git add prd.md trd.md todo.yaml
 git commit -m "Initial project documentation by firstvibe"
 ```
 
-### 🔗 CI/CD 통합
-```yaml
-# GitHub Actions 예시
-name: Generate Project Docs
-on:
-  workflow_dispatch:
-    inputs:
-      project_idea:
-        description: 'Project idea'
-        required: true
-        
-jobs:
-  generate:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-      - run: npm install firstvibe -g
-      - run: |
-          firstvibe config set openai.apiKey ${{ secrets.OPENAI_API_KEY }}
-          echo "${{ github.event.inputs.project_idea }}" | firstvibe -q 10
-      - uses: actions/upload-artifact@v4
-        with:
-          name: project-docs
-          path: |
-            prd.md
-            trd.md  
-            todo.yaml
-```
 
 ---
 
@@ -382,14 +348,6 @@ jobs:
 ### 💬 지원 채널
 - 🐛 **버그 리포트**: [GitHub Issues](https://github.com/kstost/firstvibe/issues)
 - 💡 **기능 제안**: [GitHub Discussions](https://github.com/kstost/firstvibe/discussions)
-- 📧 **기술 지원**: support@firstvibe.dev
-
-### 🎯 로드맵
-- [ ] Claude API 지원 추가
-- [ ] 웹 인터페이스 제공
-- [ ] 팀 협업 기능
-- [ ] 다국어 지원
-- [ ] 커스텀 템플릿 시스템
 
 ### 🏆 기여하기
 ```bash
