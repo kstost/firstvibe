@@ -137,13 +137,13 @@ firstvibe config set gemini.prdModel gemini-2.5-pro
 firstvibe config set gemini.trdModel gemini-2.5-flash
 ```
 
-#### 성능 및 품질 조절
+#### OpenAI 성능 및 품질 조절
 ```bash
-# Verbosity 레벨 (생성 결과의 상세도)
+# Verbosity 레벨 (생성 결과의 상세도) - OpenAI 전용
 firstvibe config set openai.prdVerbosity high       # high/medium/low
 firstvibe config set openai.trdVerbosity medium
 
-# Reasoning Effort (AI 추론 노력도)  
+# Reasoning Effort (AI 추론 노력도) - OpenAI 전용
 firstvibe config set openai.prdReasoningEffort high # high/medium/minimal
 ```
 
@@ -217,12 +217,6 @@ firstvibe --questions 15 -v
 ```
 **결과**: 상세하고 체계적인 개발 계획서 완성
 
-### 🔄 시나리오 3: 파이프라인 모드
-```bash
-# 명령줄에서 일괄 처리
-echo "AI 기반 운동 코칭 앱" | firstvibe --questions 10
-```
-**결과**: 비대화형 모드로 자동 문서 생성
 
 ---
 
@@ -235,12 +229,12 @@ echo "AI 기반 운동 코칭 앱" | firstvibe --questions 10
 | **expensive** | 프로덕션용 | gpt-5 | 고품질 | 높음 | 보통 |
 | **custom** | 사용자 정의 | 혼합 | 맞춤형 | 가변 | 가변 |
 
-### 🎨 Verbosity 레벨
+### 🎨 OpenAI Verbosity 레벨
 - **low**: 핵심만 간결하게
 - **medium**: 적절한 상세도 (권장)  
 - **high**: 매우 상세한 설명
 
-### 🧠 Reasoning Effort
+### 🧠 OpenAI Reasoning Effort
 - **minimal**: 빠른 생성, 기본적인 추론
 - **medium**: 균형잡힌 품질과 속도
 - **high**: 깊이 있는 분석과 추론
@@ -270,7 +264,7 @@ echo "AI 기반 운동 코칭 앱" | firstvibe --questions 10
 
 ### 💰 비용 관련
 - OpenAI/Google API 사용으로 **토큰 기반 비용 발생**
-- 질문 수가 많을수록, verbosity가 높을수록 비용 증가
+- 질문 수가 많을수록, OpenAI의 verbosity가 높을수록 비용 증가
 
 ### 📝 결과물 품질
 - 생성된 문서는 **출발점으로 활용**, 프로젝트에 맞는 **추가 검토 필수**
@@ -315,54 +309,12 @@ firstvibe config set provider gemini
 
 ---
 
-## 🚀 고급 활용법
-
-### 🔄 배치 처리
-```bash
-# 여러 아이디어 자동 처리
-for idea in "헬스케어 앱" "교육 플랫폼" "커뮤니티 서비스"; do
-  echo "$idea" | firstvibe -q 7 --skip-todo
-  mv prd.md "${idea}_prd.md"
-  mv trd.md "${idea}_trd.md"
-done
-```
-
-### 📁 프로젝트 템플릿 생성
-```bash
-# 프로젝트별 디렉토리 구성
-mkdir my-startup-idea
-cd my-startup-idea
-firstvibe "혁신적인 스타트업 아이디어"
-
-# Git 연동
-git init
-git add prd.md trd.md todo.yaml
-git commit -m "Initial project documentation by firstvibe"
-```
-
-
----
-
 ## 🤝 커뮤니티 및 지원
 
 ### 💬 지원 채널
 - 🐛 **버그 리포트**: [GitHub Issues](https://github.com/kstost/firstvibe/issues)
 - 💡 **기능 제안**: [GitHub Discussions](https://github.com/kstost/firstvibe/discussions)
 
-### 🏆 기여하기
-```bash
-# 저장소 클론
-git clone https://github.com/kstost/firstvibe.git
-cd firstvibe
-
-# 개발 환경 설정
-npm install
-
-# 테스트 실행
-npm test
-
-# 풀 리퀘스트 생성
-```
 
 ---
 
