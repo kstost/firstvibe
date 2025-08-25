@@ -1,7 +1,6 @@
 import inquirer from "inquirer";
 import chalk from "chalk";
 import fs from "fs";
-import readline from "readline";
 import makeTRD from "./make_trd.js";
 import trdToTodo from "./trd_to_todo.js";
 import {
@@ -161,91 +160,22 @@ class PRDGenerator {
 
     if (selection === "기타 (직접 입력)") {
       if (process.stdin.isTTY || this.commandLineDescription) {
-        // 대화형 모드 (명령줄 인수 제공 시에도 대화형)
-        console.log(pastelColors.yellow('직접 입력해주세요 (여러 줄 입력 가능, 완료하려면 빈 줄에서 Enter 두 번):'));
+        // inquirer의 editor 타입을 사용하여 멀티라인 입력 처리
+        const result = await inquirer.prompt([
+          {
+            type: 'editor',
+            name: 'customInput',
+            message: currentAnswer ? 
+              `현재 답변을 수정해주세요:` : 
+              '직접 입력해주세요 (에디터가 열립니다):',
+            default: currentAnswer || '',
+            postfix: '.txt'
+          }
+        ]);
         
-        let customInput = '';
-        let emptyLineCount = 0;
+        const custom = result.customInput?.trim();
         
-        // 윈도우즈 호환성을 위한 특별 처리
-        const isWindows = process.platform === 'win32';
-        
-        const rl = readline.createInterface({
-          input: process.stdin,
-          output: process.stdout,
-          prompt: '> ',
-          // 윈도우즈에서 키보드 이벤트 간섭 방지를 위한 설정
-          removeHistoryDuplicates: false,
-          crlfDelay: isWindows ? 100 : 0
-        });
-        
-        // 윈도우즈에서 키보드 이벤트 복구를 위한 준비
-        const originalRawMode = process.stdin.isRaw;
-        
-        rl.prompt();
-        
-        const custom = await new Promise((resolve, reject) => {
-          const cleanup = () => {
-            try {
-              rl.removeAllListeners();
-              rl.close();
-              
-              // 윈도우즈에서 키보드 이벤트 복구
-              if (isWindows) {
-                // stdin 모드 복구를 위한 짧은 지연
-                setTimeout(() => {
-                  if (originalRawMode !== process.stdin.isRaw) {
-                    try {
-                      process.stdin.setRawMode(originalRawMode);
-                    } catch (e) {
-                      // 무시 - 이미 닫혔거나 사용할 수 없음
-                    }
-                  }
-                  // 키보드 이벤트 리스너 복구를 위한 추가 지연
-                  process.nextTick(() => {
-                    process.stdin.resume();
-                  });
-                }, 10);
-              }
-            } catch (e) {
-              // readline 정리 중 오류 무시
-            }
-          };
-          
-          const handleLine = (line) => {
-            if (line.trim() === '') {
-              emptyLineCount++;
-              if (emptyLineCount >= 2 && customInput.trim() !== '') {
-                cleanup();
-                resolve(customInput.trim());
-                return;
-              }
-            } else {
-              emptyLineCount = 0;
-            }
-            
-            if (customInput) customInput += '\n';
-            customInput += line;
-            rl.prompt();
-          };
-          
-          const handleSigInt = () => {
-            cleanup();
-            process.exit(0);
-          };
-          
-          rl.on('line', handleLine);
-          rl.on('SIGINT', handleSigInt);
-          rl.on('close', () => {
-            if (customInput.trim()) {
-              resolve(customInput.trim());
-            } else {
-              reject(new Error('Input cancelled'));
-            }
-          });
-        });
-        
-        if (!custom || custom.trim() === '') {
+        if (!custom) {
           console.log(chalk.red('답변을 입력해주세요.'));
           return await this.askQuestion(questionData, currentAnswer);
         }
@@ -792,91 +722,19 @@ class PRDGenerator {
           initialInput = this.commandLineDescription;
           console.log(pastelColors.mint('📝 프로젝트 설명: ') + pastelColors.yellow(initialInput));
         } else if (process.stdin.isTTY) {
-          // 대화형 모드: 일반적인 inquirer 사용
-          console.log(pastelColors.mint('만들고자 하는 프로젝트에 대해 간단히 설명해주세요 (여러 줄 입력 가능, 완료하려면 빈 줄에서 Enter 두 번):'));
+          // inquirer의 editor 타입을 사용하여 멀티라인 프로젝트 설명 입력
+          const result = await inquirer.prompt([
+            {
+              type: 'editor',
+              name: 'description',
+              message: '만들고자 하는 프로젝트에 대해 설명해주세요 (에디터가 열립니다):',
+              postfix: '.txt'
+            }
+          ]);
           
-          let descriptionInput = '';
-          let emptyLineCount = 0;
+          const description = result.description?.trim();
           
-          // 윈도우즈 호환성을 위한 특별 처리
-          const isWindows = process.platform === 'win32';
-          
-          const rl = readline.createInterface({
-            input: process.stdin,
-            output: process.stdout,
-            prompt: '> ',
-            // 윈도우즈에서 키보드 이벤트 간섭 방지를 위한 설정
-            removeHistoryDuplicates: false,
-            crlfDelay: isWindows ? 100 : 0
-          });
-          
-          // 윈도우즈에서 키보드 이벤트 복구를 위한 준비
-          const originalRawMode = process.stdin.isRaw;
-          
-          rl.prompt();
-          
-          const description = await new Promise((resolve, reject) => {
-            const cleanup = () => {
-              try {
-                rl.removeAllListeners();
-                rl.close();
-                
-                // 윈도우즈에서 키보드 이벤트 복구
-                if (isWindows) {
-                  // stdin 모드 복구를 위한 짧은 지연
-                  setTimeout(() => {
-                    if (originalRawMode !== process.stdin.isRaw) {
-                      try {
-                        process.stdin.setRawMode(originalRawMode);
-                      } catch (e) {
-                        // 무시 - 이미 닫혔거나 사용할 수 없음
-                      }
-                    }
-                    // 키보드 이벤트 리스너 복구를 위한 추가 지연
-                    process.nextTick(() => {
-                      process.stdin.resume();
-                    });
-                  }, 10);
-                }
-              } catch (e) {
-                // readline 정리 중 오류 무시
-              }
-            };
-            
-            const handleLine = (line) => {
-              if (line.trim() === '') {
-                emptyLineCount++;
-                if (emptyLineCount >= 2 && descriptionInput.trim() !== '') {
-                  cleanup();
-                  resolve(descriptionInput.trim());
-                  return;
-                }
-              } else {
-                emptyLineCount = 0;
-              }
-              
-              if (descriptionInput) descriptionInput += '\n';
-              descriptionInput += line;
-              rl.prompt();
-            };
-            
-            const handleSigInt = () => {
-              cleanup();
-              process.exit(0);
-            };
-            
-            rl.on('line', handleLine);
-            rl.on('SIGINT', handleSigInt);
-            rl.on('close', () => {
-              if (descriptionInput.trim()) {
-                resolve(descriptionInput.trim());
-              } else {
-                reject(new Error('Input cancelled'));
-              }
-            });
-          });
-          
-          if (!description || description.trim() === '') {
+          if (!description) {
             console.error(chalk.red('프로젝트 설명을 입력해주세요.'));
             process.exit(1);
           }
