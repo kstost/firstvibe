@@ -11,6 +11,7 @@ import {
 } from "./config.js";
 import { generateQuestions, generatePRD } from "./ai_api.js";
 import { PRD_SYSTEM_PROMPT, createQuestionSystemPrompt } from "./system_prompts.js";
+import { tagify } from "./utils.js";
 
 const pastelColors = {
   pink: chalk.hex('#FFB3BA'),
@@ -216,18 +217,47 @@ class PRDGenerator {
   }
 
   async generatePRD() {
-    // Q&A 데이터를 정리하여 PRD 생성을 위한 텍스트로 변환
-    let qaText = `프로젝트 설명: ${this.qaHistory[0].userInput}\n\n`;
+    // Q&A 데이터를 tagify로 구조화하여 PRD 생성을 위한 텍스트로 변환
+    const qaStructure = {
+      tagname: "project_requirements",
+      children: [
+        {
+          tagname: "project_description",
+          children: [
+            { content: this.qaHistory[0].userInput }
+          ]
+        },
+        {
+          tagname: "collected_requirements",
+          children: []
+        }
+      ]
+    };
 
-    qaText += "수집된 요구사항 정보:\n";
+    // Q&A 항목들을 구조화
     for (let i = 0; i < this.qaHistory.length; i++) {
       const qa = this.qaHistory[i];
       if (qa.aiResponse && qa.aiResponse.questions && qa.userAnswer) {
         const question = qa.aiResponse.questions[0].question;
-        qaText += `Q: ${question}\n`;
-        qaText += `A: ${qa.userAnswer}\n\n`;
+        const qaItem = {
+          tagname: "qa_item",
+          children: [
+            {
+              tagname: "question",
+              children: [{ content: question }]
+            },
+            {
+              tagname: "answer", 
+              children: [{ content: qa.userAnswer }]
+            }
+          ]
+        };
+        qaStructure.children[1].children.push(qaItem);
       }
     }
+
+    // tagify를 사용하여 구조화된 텍스트 생성
+    const qaText = tagify(qaStructure);
 
     const input = [
       {
