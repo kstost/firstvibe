@@ -765,9 +765,21 @@ class PRDGenerator {
           // QA 요약 표시
           this.displayQASummary();
           
-          // 바로 PRD 생성으로 진행
-          await this.generateAndDisplayPRD();
-          return;
+          // 답변 검토 및 확인 단계로 이동 (수정/확인 선택)
+          const confirmed = await this.reviewAndConfirmAnswers();
+          
+          if (confirmed) {
+            // 확인됐으면 PRD 생성
+            process.stdout.write('\x1B[1A\x1B[2K');
+            await this.generateAndDisplayPRD();
+            return;
+          } else {
+            // 수정을 원한다면 일반 설문 과정으로 이동
+            console.log(pastelColors.yellow('🔄 설문 과정을 다시 시작합니다...'));
+            // firstvibe.json 데이터를 초기화하고 일반 설문 과정으로 진행
+            this.firstvibeJsonData = null;
+            this.commandLineDescription = this.qaHistory[0].userInput; // 프로젝트 설명만 유지
+          }
         }
       }
 
