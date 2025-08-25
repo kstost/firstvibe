@@ -867,12 +867,7 @@ class PRDGenerator {
         project: {
           description: this.qaHistory[0].userInput
         },
-        qa_history: [],
-        metadata: {
-          total_questions: this.qaHistory.length - 1, // 첫 번째는 프로젝트 설명이므로 제외
-          max_questions: this.maxQuestions,
-          options: this.options
-        }
+        qa_history: []
       };
 
       // Q&A 히스토리 구성
