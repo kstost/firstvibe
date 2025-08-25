@@ -76,6 +76,7 @@ firstvibe
 
 ### 5️⃣ 결과 확인
 생성된 파일들을 확인하고 **✨ 바이브코딩**을 시작하세요!
+- 💾 `firstvibe.json` - 질문-답변 데이터
 - 📄 `prd.md` - 제품요구사항문서
 - 🔧 `trd.md` - 기술요구사항문서  
 - ✅ `todo.yaml` - 개발 할일 목록
@@ -93,6 +94,12 @@ firstvibe
 # 명령줄에서 프로젝트 설명 제공
 firstvibe "음식 주문 배달 앱"
 
+# 파일에서 프로젝트 설명 읽기
+firstvibe -f project.txt
+
+# 이전 설문 결과 재사용 (설문 건너뛰고 수정/생성 선택)
+firstvibe -f firstvibe.json
+
 # 도움말 보기
 firstvibe help
 ```
@@ -102,6 +109,10 @@ firstvibe help
 ```bash
 # 상세 출력 모드 (디버깅 정보 포함)
 firstvibe -v
+
+# 파일 입력 옵션
+firstvibe -f project.txt     # 텍스트 파일에서 프로젝트 설명 읽기
+firstvibe -f firstvibe.json  # 이전 Q&A 결과 재사용
 
 # 질문 횟수 조절 (1-50)
 firstvibe -q 5               # 빠른 생성 (5문항)
@@ -170,6 +181,13 @@ firstvibe config reset
 
 ## 📁 생성되는 파일 상세
 
+### 💾 `firstvibe.json` - 질문-답변 데이터
+**JSON 형식의 설문 결과 저장 파일**
+- 📅 생성 타임스탬프
+- 📝 프로젝트 설명
+- 🗣️ 모든 질문과 답변 내역
+- 🔄 **재사용 가능**: `firstvibe -f firstvibe.json`로 이전 설문 결과 활용
+
 ### 📊 `prd.md` - 제품요구사항문서
 **Product Requirements Document**
 - 🎯 제품 개요 및 비전
@@ -217,6 +235,30 @@ firstvibe --questions 15 -v
 ```
 **결과**: 상세하고 체계적인 개발 계획서 완성
 
+### 🔄 시나리오 3: 이전 설문 재활용
+```bash
+# 1단계: 첫 번째 실행으로 firstvibe.json 생성
+firstvibe -q 10 "헬스케어 앱"
+
+# 2단계: 설정 변경 후 같은 설문으로 다른 결과 생성
+firstvibe config mode expensive
+firstvibe -f firstvibe.json
+
+# 3단계: 일부 답변만 수정하여 새로운 버전 생성
+firstvibe -f firstvibe.json  # 수정 옵션 선택
+```
+**결과**: 동일한 설문을 기반으로 여러 버전의 문서 생성
+
+### 📁 시나리오 4: 파일 기반 워크플로우
+```bash
+# project-description.txt 파일 생성
+echo "AI 기반 언어학습 플랫폼" > project.txt
+
+# 파일을 통한 프로젝트 시작
+firstvibe -f project.txt --questions 12
+```
+**결과**: 일관된 프로젝트 설명으로 반복 실행 가능
+
 
 ---
 
@@ -245,8 +287,10 @@ firstvibe --questions 15 -v
 
 ### 💡 효율적인 사용법
 1. **첫 번째 시도**: `cheap` 모드로 빠르게 아이디어 검증
-2. **두 번째 시도**: 만족스러운 방향이면 `expensive` 모드로 정교화
-3. **반복 개선**: 생성된 문서를 바탕으로 아이디어 다듬기
+2. **설문 데이터 보존**: `firstvibe.json` 파일을 통한 설문 결과 재활용
+3. **모드 전환 활용**: 동일 설문 + 다른 모드로 품질 비교
+4. **점진적 개선**: 답변 수정 기능으로 세밀한 조정
+5. **파일 기반 관리**: 프로젝트 설명을 텍스트 파일로 관리하여 일관성 유지
 
 ### 🔍 질문 답변 요령
 - **구체적으로**: "모바일 앱" → "iOS/Android 네이티브 앱"
@@ -254,9 +298,11 @@ firstvibe --questions 15 -v
 - **현실적으로**: 실현 가능한 범위 내에서 목표 설정
 
 ### 📈 품질 향상 방법
-- **반복 실행**: 같은 아이디어로 여러 번 실행하여 최적의 결과 선택
+- **반복 실행**: `firstvibe.json` 재사용으로 동일 설문 + 다른 설정 조합 테스트
 - **질문 수 조절**: 복잡한 아이디어일수록 질문 수를 늘려서 실행
 - **모델 조합**: PRD는 고급 모델, TODO는 경제적 모델로 비용 최적화
+- **점진적 개선**: 설문 결과 수정 기능으로 특정 답변만 개선
+- **파일 관리**: 프로젝트별로 `firstvibe.json`을 버전 관리하여 히스토리 추적
 
 ---
 
