@@ -160,19 +160,39 @@ class PRDGenerator {
 
     if (selection === "기타 (직접 입력)") {
       if (process.stdin.isTTY || this.commandLineDescription) {
-        // 간단한 텍스트 입력
-        const result = await inquirer.prompt([
-          {
-            type: 'input',
-            name: 'customInput',
-            message: currentAnswer ? 
-              `현재 답변: "${currentAnswer}" - 새로운 답변을 입력해주세요:` : 
-              '직접 입력해주세요:',
-            default: currentAnswer || ''
-          }
-        ]);
+        // 멀티라인 입력을 위한 여러 번 입력받기 방식
+        console.log(pastelColors.yellow('직접 입력해주세요. 여러 줄을 원하시면 각 줄을 차례로 입력하세요.'));
+        console.log(pastelColors.gray('빈 줄을 입력하면 완료됩니다.'));
         
-        const custom = result.customInput?.trim();
+        let customLines = [];
+        
+        // 현재 답변이 있으면 기본값으로 설정
+        if (currentAnswer) {
+          customLines = currentAnswer.split('\n');
+          console.log(pastelColors.gray(`현재 답변: ${currentAnswer}`));
+        }
+        
+        while (true) {
+          const result = await inquirer.prompt([
+            {
+              type: 'input',
+              name: 'line',
+              message: customLines.length === 0 ? '입력:' : `줄 ${customLines.length + 1} (빈 줄이면 완료):`,
+              default: ''
+            }
+          ]);
+          
+          const line = result.line?.trim();
+          
+          if (!line) {
+            // 빈 줄이면 완료
+            break;
+          }
+          
+          customLines.push(line);
+        }
+        
+        const custom = customLines.join('\n').trim();
         
         if (!custom) {
           console.log(chalk.red('답변을 입력해주세요.'));
@@ -721,16 +741,33 @@ class PRDGenerator {
           initialInput = this.commandLineDescription;
           console.log(pastelColors.mint('📝 프로젝트 설명: ') + pastelColors.yellow(initialInput));
         } else if (process.stdin.isTTY) {
-          // 간단한 프로젝트 설명 입력
-          const result = await inquirer.prompt([
-            {
-              type: 'input',
-              name: 'description',
-              message: '만들고자 하는 프로젝트에 대해 설명해주세요:'
-            }
-          ]);
+          // 프로젝트 설명 멀티라인 입력
+          console.log(pastelColors.mint('만들고자 하는 프로젝트에 대해 설명해주세요. 여러 줄로 입력 가능합니다.'));
+          console.log(pastelColors.gray('빈 줄을 입력하면 완료됩니다.'));
           
-          const description = result.description?.trim();
+          let descriptionLines = [];
+          
+          while (true) {
+            const result = await inquirer.prompt([
+              {
+                type: 'input',
+                name: 'line',
+                message: descriptionLines.length === 0 ? '설명:' : `줄 ${descriptionLines.length + 1} (빈 줄이면 완료):`,
+                default: ''
+              }
+            ]);
+            
+            const line = result.line?.trim();
+            
+            if (!line) {
+              // 빈 줄이면 완료
+              break;
+            }
+            
+            descriptionLines.push(line);
+          }
+          
+          const description = descriptionLines.join('\n').trim();
           
           if (!description) {
             console.error(chalk.red('프로젝트 설명을 입력해주세요.'));
