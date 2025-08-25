@@ -74,21 +74,37 @@ AI 기반 PRD, TRD, TODO List 자동 생성 도구
 💡 빠른 시작:
   1. 초기 설정: firstvibe (AI 제공자 및 API 키 설정)
   2. 모드 선택: firstvibe config mode cheap (또는 expensive)  
-  3. 문서 생성: firstvibe`)
+  3. 문서 생성: firstvibe 또는 firstvibe -f 파일명.txt`)
   .version('1.1.0')
   .argument('[description]', '프로젝트 설명 (옵션, 제공하지 않으면 대화형으로 입력)')
   .option('-v, --verbose', '상세 출력 모드 (디버깅 정보 표시)')
   .option('--skip-trd', 'TRD 생성 건너뛰기 (PRD만 생성)')
   .option('--skip-todo', 'TODO 생성 건너뛰기 (PRD, TRD만 생성)')
   .option('-q, --questions <number>', '질문 횟수 설정 (1-50, 기본값: 10)', '10')
+  .option('-f, --file <path>', '프로젝트 설명이 담긴 파일 경로')
   .action(async (description, options) => {
     try {
       const prdGenerator = new PRDGenerator();
       prdGenerator.options = options;
       prdGenerator.setMaxQuestions(options.questions);
       
-      // 명령줄 인수로 프로젝트 설명이 제공된 경우
-      if (description) {
+      // 프로젝트 설명 입력 우선순위: 파일 > 명령줄 인수
+      if (options.file) {
+        // 파일 경로로 프로젝트 설명이 제공된 경우
+        try {
+          const fileContent = fs.readFileSync(options.file, 'utf8');
+          prdGenerator.commandLineDescription = fileContent.trim();
+          
+          if (description) {
+            console.log(chalk.yellow('⚠️  파일과 명령줄 설명이 모두 제공되었습니다. 파일 내용을 사용합니다.'));
+          }
+        } catch (error) {
+          console.error(chalk.red(`❌ 파일을 읽을 수 없습니다: ${options.file}`));
+          console.error(chalk.gray(`오류: ${error.message}`));
+          process.exit(1);
+        }
+      } else if (description) {
+        // 명령줄 인수로 프로젝트 설명이 제공된 경우
         prdGenerator.commandLineDescription = description;
       }
       
@@ -319,6 +335,7 @@ program
     console.log(chalk.cyan('📚 문서 생성:'));
     console.log('  firstvibe                    # 대화형 문서 생성 시작');
     console.log('  firstvibe "diet app"         # 명령줄에서 프로젝트 설명 제공');
+    console.log('  firstvibe -f project.txt     # 파일에서 프로젝트 설명 읽기');
     console.log('  firstvibe -v                 # 상세 출력 모드 (디버깅용)');
     console.log('  firstvibe -q 5               # 질문 5개로 빠른 생성');
     console.log('  firstvibe --questions 15     # 질문 15개로 상세 생성');
