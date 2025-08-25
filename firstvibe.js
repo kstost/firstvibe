@@ -357,6 +357,7 @@ program
     console.log('  3️⃣  문서 생성      → firstvibe\n');
 
     console.log(chalk.yellow('📁 생성되는 파일:'));
+    console.log('  💾 firstvibe.json # 질문-답변 데이터 (Q&A History)');
     console.log('  📄 prd.md         # 제품요구사항문서 (Product Requirements)');
     console.log('  🔧 trd.md         # 기술요구사항문서 (Technical Requirements)');
     console.log('  ✅ todo.yaml      # 개발 할일 목록 (Development Tasks)\n');

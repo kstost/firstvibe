@@ -302,6 +302,7 @@ class PRDGenerator {
         console.log(pastelColors.peach('⚠️  TODO 생성을 건너뜁니다.'));
         console.log(pastelColors.mint.bold('\n🎉 문서 생성이 완료되었습니다!'));
         console.log(pastelColors.lightPurple('생성된 파일들:'));
+        console.log(pastelColors.blue('  • firstvibe.json') + pastelColors.lightPurple(' - 질문-답변 데이터'));
         console.log(pastelColors.blue('  • prd.md') + pastelColors.lightPurple(' - 제품요구사항문서'));
         console.log(pastelColors.blue('  • trd.md') + pastelColors.lightPurple(' - 기술요구사항문서'));
         return;
@@ -316,6 +317,7 @@ class PRDGenerator {
 
       console.log(pastelColors.mint.bold('\n🎉 전체 문서 생성이 완료되었습니다!'));
       console.log(pastelColors.lightPurple('생성된 파일들:'));
+      console.log(pastelColors.blue('  • firstvibe.json') + pastelColors.lightPurple(' - 질문-답변 데이터'));
       console.log(pastelColors.blue('  • prd.md') + pastelColors.lightPurple(' - 제품요구사항문서'));
       console.log(pastelColors.blue('  • trd.md') + pastelColors.lightPurple(' - 기술요구사항문서'));
       console.log(pastelColors.blue('  • todo.yaml') + pastelColors.lightPurple(' - 개발 할일 목록'));
@@ -858,6 +860,40 @@ class PRDGenerator {
   }
 
   async generateAndDisplayPRD() {
+    // 질문-답변 데이터를 firstvibe.json으로 저장
+    try {
+      const qaData = {
+        timestamp: new Date().toISOString(),
+        project: {
+          description: this.qaHistory[0].userInput
+        },
+        qa_history: [],
+        metadata: {
+          total_questions: this.qaHistory.length - 1, // 첫 번째는 프로젝트 설명이므로 제외
+          max_questions: this.maxQuestions,
+          options: this.options
+        }
+      };
+
+      // Q&A 히스토리 구성
+      for (let i = 0; i < this.qaHistory.length; i++) {
+        const qa = this.qaHistory[i];
+        if (qa.aiResponse && qa.aiResponse.questions && qa.userAnswer) {
+          qaData.qa_history.push({
+            question_number: i,
+            question: qa.aiResponse.questions[0].question,
+            choices: qa.aiResponse.questions[0].choices,
+            answer: qa.userAnswer
+          });
+        }
+      }
+
+      fs.writeFileSync('firstvibe.json', JSON.stringify(qaData, null, 2), 'utf8');
+      console.log(pastelColors.lightMint('💾 Q&A 데이터 저장 완료: ') + pastelColors.blue('firstvibe.json'));
+    } catch (saveError) {
+      console.error(pastelColors.pink('⚠️  Q&A 데이터 저장 실패: ') + saveError.message);
+    }
+
     // PRD 문서 생성
     try {
       const prdDocument = await this.generatePRD();
