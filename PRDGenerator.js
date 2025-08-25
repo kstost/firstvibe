@@ -160,16 +160,15 @@ class PRDGenerator {
 
     if (selection === "기타 (직접 입력)") {
       if (process.stdin.isTTY || this.commandLineDescription) {
-        // inquirer의 editor 타입을 사용하여 멀티라인 입력 처리
+        // 간단한 텍스트 입력
         const result = await inquirer.prompt([
           {
-            type: 'editor',
+            type: 'input',
             name: 'customInput',
             message: currentAnswer ? 
-              `현재 답변을 수정해주세요:` : 
-              '직접 입력해주세요 (에디터가 열립니다):',
-            default: currentAnswer || '',
-            postfix: '.txt'
+              `현재 답변: "${currentAnswer}" - 새로운 답변을 입력해주세요:` : 
+              '직접 입력해주세요:',
+            default: currentAnswer || ''
           }
         ]);
         
@@ -722,13 +721,12 @@ class PRDGenerator {
           initialInput = this.commandLineDescription;
           console.log(pastelColors.mint('📝 프로젝트 설명: ') + pastelColors.yellow(initialInput));
         } else if (process.stdin.isTTY) {
-          // inquirer의 editor 타입을 사용하여 멀티라인 프로젝트 설명 입력
+          // 간단한 프로젝트 설명 입력
           const result = await inquirer.prompt([
             {
-              type: 'editor',
+              type: 'input',
               name: 'description',
-              message: '만들고자 하는 프로젝트에 대해 설명해주세요 (에디터가 열립니다):',
-              postfix: '.txt'
+              message: '만들고자 하는 프로젝트에 대해 설명해주세요:'
             }
           ]);
           
