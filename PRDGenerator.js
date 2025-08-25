@@ -167,20 +167,56 @@ class PRDGenerator {
         let customInput = '';
         let emptyLineCount = 0;
         
+        // 윈도우즈 호환성을 위한 특별 처리
+        const isWindows = process.platform === 'win32';
+        
         const rl = readline.createInterface({
           input: process.stdin,
           output: process.stdout,
-          prompt: '> '
+          prompt: '> ',
+          // 윈도우즈에서 키보드 이벤트 간섭 방지를 위한 설정
+          removeHistoryDuplicates: false,
+          crlfDelay: isWindows ? 100 : 0
         });
+        
+        // 윈도우즈에서 키보드 이벤트 복구를 위한 준비
+        const originalRawMode = process.stdin.isRaw;
         
         rl.prompt();
         
-        const custom = await new Promise((resolve) => {
-          rl.on('line', (line) => {
+        const custom = await new Promise((resolve, reject) => {
+          const cleanup = () => {
+            try {
+              rl.removeAllListeners();
+              rl.close();
+              
+              // 윈도우즈에서 키보드 이벤트 복구
+              if (isWindows) {
+                // stdin 모드 복구를 위한 짧은 지연
+                setTimeout(() => {
+                  if (originalRawMode !== process.stdin.isRaw) {
+                    try {
+                      process.stdin.setRawMode(originalRawMode);
+                    } catch (e) {
+                      // 무시 - 이미 닫혔거나 사용할 수 없음
+                    }
+                  }
+                  // 키보드 이벤트 리스너 복구를 위한 추가 지연
+                  process.nextTick(() => {
+                    process.stdin.resume();
+                  });
+                }, 10);
+              }
+            } catch (e) {
+              // readline 정리 중 오류 무시
+            }
+          };
+          
+          const handleLine = (line) => {
             if (line.trim() === '') {
               emptyLineCount++;
               if (emptyLineCount >= 2 && customInput.trim() !== '') {
-                rl.close();
+                cleanup();
                 resolve(customInput.trim());
                 return;
               }
@@ -191,11 +227,21 @@ class PRDGenerator {
             if (customInput) customInput += '\n';
             customInput += line;
             rl.prompt();
-          });
+          };
           
-          rl.on('SIGINT', () => {
-            rl.close();
+          const handleSigInt = () => {
+            cleanup();
             process.exit(0);
+          };
+          
+          rl.on('line', handleLine);
+          rl.on('SIGINT', handleSigInt);
+          rl.on('close', () => {
+            if (customInput.trim()) {
+              resolve(customInput.trim());
+            } else {
+              reject(new Error('Input cancelled'));
+            }
           });
         });
         
@@ -752,20 +798,56 @@ class PRDGenerator {
           let descriptionInput = '';
           let emptyLineCount = 0;
           
+          // 윈도우즈 호환성을 위한 특별 처리
+          const isWindows = process.platform === 'win32';
+          
           const rl = readline.createInterface({
             input: process.stdin,
             output: process.stdout,
-            prompt: '> '
+            prompt: '> ',
+            // 윈도우즈에서 키보드 이벤트 간섭 방지를 위한 설정
+            removeHistoryDuplicates: false,
+            crlfDelay: isWindows ? 100 : 0
           });
+          
+          // 윈도우즈에서 키보드 이벤트 복구를 위한 준비
+          const originalRawMode = process.stdin.isRaw;
           
           rl.prompt();
           
-          const description = await new Promise((resolve) => {
-            rl.on('line', (line) => {
+          const description = await new Promise((resolve, reject) => {
+            const cleanup = () => {
+              try {
+                rl.removeAllListeners();
+                rl.close();
+                
+                // 윈도우즈에서 키보드 이벤트 복구
+                if (isWindows) {
+                  // stdin 모드 복구를 위한 짧은 지연
+                  setTimeout(() => {
+                    if (originalRawMode !== process.stdin.isRaw) {
+                      try {
+                        process.stdin.setRawMode(originalRawMode);
+                      } catch (e) {
+                        // 무시 - 이미 닫혔거나 사용할 수 없음
+                      }
+                    }
+                    // 키보드 이벤트 리스너 복구를 위한 추가 지연
+                    process.nextTick(() => {
+                      process.stdin.resume();
+                    });
+                  }, 10);
+                }
+              } catch (e) {
+                // readline 정리 중 오류 무시
+              }
+            };
+            
+            const handleLine = (line) => {
               if (line.trim() === '') {
                 emptyLineCount++;
                 if (emptyLineCount >= 2 && descriptionInput.trim() !== '') {
-                  rl.close();
+                  cleanup();
                   resolve(descriptionInput.trim());
                   return;
                 }
@@ -776,11 +858,21 @@ class PRDGenerator {
               if (descriptionInput) descriptionInput += '\n';
               descriptionInput += line;
               rl.prompt();
-            });
+            };
             
-            rl.on('SIGINT', () => {
-              rl.close();
+            const handleSigInt = () => {
+              cleanup();
               process.exit(0);
+            };
+            
+            rl.on('line', handleLine);
+            rl.on('SIGINT', handleSigInt);
+            rl.on('close', () => {
+              if (descriptionInput.trim()) {
+                resolve(descriptionInput.trim());
+              } else {
+                reject(new Error('Input cancelled'));
+              }
             });
           });
           
