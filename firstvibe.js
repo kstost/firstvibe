@@ -93,7 +93,23 @@ AI 기반 PRD, TRD, TODO List 자동 생성 도구
         // 파일 경로로 프로젝트 설명이 제공된 경우
         try {
           const fileContent = fs.readFileSync(options.file, 'utf8');
-          prdGenerator.commandLineDescription = fileContent.trim();
+          
+          // firstvibe.json 파일인지 확인
+          let isFirstvibeJson = false;
+          try {
+            const jsonData = JSON.parse(fileContent);
+            if (jsonData.timestamp && jsonData.project && jsonData.qa_history) {
+              isFirstvibeJson = true;
+              prdGenerator.firstvibeJsonData = jsonData;
+              console.log(chalk.green('✅ firstvibe.json 파일을 감지했습니다. 설문 과정을 건너뛰고 PRD 생성을 시작합니다.'));
+            }
+          } catch (parseError) {
+            // JSON 파싱 실패 시 일반 텍스트 파일로 처리
+          }
+          
+          if (!isFirstvibeJson) {
+            prdGenerator.commandLineDescription = fileContent.trim();
+          }
           
           if (description) {
             console.log(chalk.yellow('⚠️  파일과 명령줄 설명이 모두 제공되었습니다. 파일 내용을 사용합니다.'));
@@ -336,6 +352,7 @@ program
     console.log('  firstvibe                    # 대화형 문서 생성 시작');
     console.log('  firstvibe "diet app"         # 명령줄에서 프로젝트 설명 제공');
     console.log('  firstvibe -f project.txt     # 파일에서 프로젝트 설명 읽기');
+    console.log('  firstvibe -f firstvibe.json  # 이전 Q&A에서 바로 문서 생성 (설문 건너뛰기)');
     console.log('  firstvibe -v                 # 상세 출력 모드 (디버깅용)');
     console.log('  firstvibe -q 5               # 질문 5개로 빠른 생성');
     console.log('  firstvibe --questions 15     # 질문 15개로 상세 생성');

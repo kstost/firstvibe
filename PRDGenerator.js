@@ -31,6 +31,7 @@ class PRDGenerator {
     this.currentQuestion = 1;
     this.maxQuestions = 10; // 기본값, options에서 덮어씀
     this.options = {};
+    this.firstvibeJsonData = null; // firstvibe.json 데이터
   }
 
   setMaxQuestions(count) {
@@ -40,6 +41,32 @@ class PRDGenerator {
       process.exit(1);
     }
     this.maxQuestions = questionCount;
+  }
+
+  restoreQAHistoryFromJson() {
+    if (!this.firstvibeJsonData) return false;
+
+    // 프로젝트 설명을 첫 번째 히스토리로 추가
+    this.qaHistory = [{
+      userInput: this.firstvibeJsonData.project.description,
+      questionNumber: 0
+    }];
+
+    // QA 히스토리 복원
+    this.firstvibeJsonData.qa_history.forEach((qa, index) => {
+      this.qaHistory.push({
+        questionNumber: index + 1,
+        aiResponse: {
+          questions: [{
+            question: qa.question,
+            choices: qa.choices
+          }]
+        },
+        userAnswer: qa.answer
+      });
+    });
+
+    return true;
   }
 
   displayQASummary() {
@@ -727,8 +754,24 @@ class PRDGenerator {
     }
 
     try {
-      let restart = true;
+      // firstvibe.json 데이터가 있으면 설문 과정 건너뛰기
+      if (this.firstvibeJsonData) {
+        console.log(pastelColors.lavender.bold('🚀 firstvibe.json에서 데이터를 복원합니다.'));
+        
+        if (this.restoreQAHistoryFromJson()) {
+          console.log(pastelColors.mint(`📝 프로젝트: ${this.firstvibeJsonData.project.description}`));
+          console.log(pastelColors.lightPurple(`📊 복원된 질문-답변: ${this.firstvibeJsonData.qa_history.length}개\n`));
+          
+          // QA 요약 표시
+          this.displayQASummary();
+          
+          // 바로 PRD 생성으로 진행
+          await this.generateAndDisplayPRD();
+          return;
+        }
+      }
 
+      let restart = true;
 
       while (restart) {
         // 초기화 (재시작 시)
