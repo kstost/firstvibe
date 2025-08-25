@@ -338,26 +338,53 @@ class PRDGenerator {
 
   async getAIResponse() {
 
-    // 모든 대화 히스토리를 하나의 사용자 메시지로 합치기
-    let conversationHistory = '';
+    // 대화 히스토리를 tagify로 구조화
+    const conversationStructure = {
+      tagname: "conversation_history",
+      children: [
+        {
+          tagname: "initial_project_description",
+          children: [
+            { content: this.qaHistory[0].userInput }
+          ]
+        }
+      ]
+    };
 
-    if (this.qaHistory.length === 1) {
-      // 첫 번째 질문인 경우 (프로젝트 설명만 있음)
-      conversationHistory = `Initial Project Description: ${this.qaHistory[0].userInput}`;
-    } else {
-      // 전체 대화 히스토리를 문자열로 구성
-      conversationHistory = `Initial Project Description: ${this.qaHistory[0].userInput}\n\n`;
+    // 첫 번째 질문이 아닌 경우, 이전 Q&A들을 추가
+    if (this.qaHistory.length > 1) {
+      const previousQASection = {
+        tagname: "previous_qa_history",
+        children: []
+      };
 
       for (let i = 0; i < this.qaHistory.length; i++) {
         const qa = this.qaHistory[i];
-        if (qa.aiResponse && qa.aiResponse.questions) {
-          conversationHistory += `Previous Question: ${qa.aiResponse.questions[0].question}\n`;
-        }
-        if (qa.userAnswer) {
-          conversationHistory += `User Answer: ${qa.userAnswer}\n\n`;
+        if (qa.aiResponse && qa.aiResponse.questions && qa.userAnswer) {
+          const qaHistoryItem = {
+            tagname: "qa_history_item",
+            children: [
+              {
+                tagname: "previous_question",
+                children: [{ content: qa.aiResponse.questions[0].question }]
+              },
+              {
+                tagname: "user_answer",
+                children: [{ content: qa.userAnswer }]
+              }
+            ]
+          };
+          previousQASection.children.push(qaHistoryItem);
         }
       }
+
+      if (previousQASection.children.length > 0) {
+        conversationStructure.children.push(previousQASection);
+      }
     }
+
+    // tagify를 사용하여 구조화된 대화 히스토리 생성
+    const conversationHistory = tagify(conversationStructure);
 
     const messages = [
       {
