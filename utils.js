@@ -112,3 +112,67 @@ export function saveApiLog(purpose, type, data, provider = '', model = '') {
     return null;
   }
 }
+
+
+/**
+ * 텍스트의 각 줄에 들여쓰기를 적용하는 함수
+ * @param {string} content - 들여쓰기를 적용할 텍스트
+ * @param {number} indentLevel - 들여쓰기 레벨 (기본값: 0)
+ * @returns {string} 들여쓰기가 적용된 텍스트
+ */
+export function indentLines(content, indentLevel = 0) {
+    return content.split('\n').map(line => '   '.repeat(indentLevel) + line).join('\n');
+}
+
+/**
+ * JSON 객체를 HTML 태그 형태로 변환하는 함수
+ * @param {Object|string} json - 변환할 JSON 객체 또는 문자열
+ * @param {number} indentLevel - 들여쓰기 레벨 (기본값: 0)
+ * @returns {string} HTML 태그 형태로 변환된 문자열
+ * 
+ * 지원하는 JSON 구조:
+ * - 문자열: 그대로 반환 (들여쓰기 적용)
+ * - {tagname: "div", attr: {class: "example"}, children: [...]} : HTML 태그로 변환
+ * - {content: "text"}: 텍스트 컨텐츠로 처리
+ */
+export function tagify(json, indentLevel = 0) {
+    if (!json) return '';
+
+    // 문자열이면 바로 content로 처리
+    if (typeof json === 'string') {
+        return indentLines(json, indentLevel);
+    }
+
+    // tagname이 있으면 tag로 처리
+    if (json.tagname) {
+        let openTag = `<${json.tagname}`;
+
+        // attributes가 있으면 추가
+        if (json.attr && typeof json.attr === 'object') {
+            for (const [key, value] of Object.entries(json.attr)) {
+                openTag += ` ${key}="${value}"`;
+            }
+        }
+
+        openTag += '>';
+        const closeTag = `</${json.tagname}>`;
+
+        let result = indentLines(openTag, indentLevel) + '\n';
+
+        if (json.children && Array.isArray(json.children)) {
+            for (const child of json.children) {
+                result += tagify(child, indentLevel + 1) + '\n';
+            }
+        }
+
+        result += indentLines(closeTag, indentLevel);
+        return result;
+    }
+
+    // content가 있으면 content로 처리
+    if (json.content) {
+        return indentLines(json.content, indentLevel);
+    }
+
+    return '';
+}
