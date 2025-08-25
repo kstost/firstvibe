@@ -1,6 +1,7 @@
 import inquirer from "inquirer";
 import chalk from "chalk";
 import fs from "fs";
+import readline from "readline";
 import makeTRD from "./make_trd.js";
 import trdToTodo from "./trd_to_todo.js";
 import {
@@ -164,7 +165,6 @@ class PRDGenerator {
         
         let customInput = '';
         let emptyLineCount = 0;
-        const readline = require('readline');
         
         const rl = readline.createInterface({
           input: process.stdin,
@@ -694,7 +694,6 @@ class PRDGenerator {
           
           let descriptionInput = '';
           let emptyLineCount = 0;
-          const readline = require('readline');
           
           const rl = readline.createInterface({
             input: process.stdin,
