@@ -160,18 +160,49 @@ class PRDGenerator {
     if (selection === "기타 (직접 입력)") {
       if (process.stdin.isTTY || this.commandLineDescription) {
         // 대화형 모드 (명령줄 인수 제공 시에도 대화형)
-        const { custom } = await inquirer.prompt([
-          {
-            type: 'editor',
-            name: 'custom',
-            message: pastelColors.yellow('직접 입력해주세요 (개행: Alt+Enter, 완료: 저장 후 닫기):'),
-            default: currentAnswer && !choices.slice(0, -1).includes(currentAnswer) ? currentAnswer : '',
-            validate: (input) => {
-              return input.trim() !== '' || '답변을 입력해주세요.';
-            },
-            waitForUseInput: false
-          }
-        ]);
+        console.log(pastelColors.yellow('직접 입력해주세요 (여러 줄 입력 가능, 완료하려면 빈 줄에서 Enter 두 번):'));
+        
+        let customInput = '';
+        let emptyLineCount = 0;
+        const readline = require('readline');
+        
+        const rl = readline.createInterface({
+          input: process.stdin,
+          output: process.stdout,
+          prompt: '> '
+        });
+        
+        rl.prompt();
+        
+        const custom = await new Promise((resolve) => {
+          rl.on('line', (line) => {
+            if (line.trim() === '') {
+              emptyLineCount++;
+              if (emptyLineCount >= 2 && customInput.trim() !== '') {
+                rl.close();
+                resolve(customInput.trim());
+                return;
+              }
+            } else {
+              emptyLineCount = 0;
+            }
+            
+            if (customInput) customInput += '\n';
+            customInput += line;
+            rl.prompt();
+          });
+          
+          rl.on('SIGINT', () => {
+            rl.close();
+            process.exit(0);
+          });
+        });
+        
+        if (!custom || custom.trim() === '') {
+          console.log(chalk.red('답변을 입력해주세요.'));
+          return await this.askQuestion(questionData, currentAnswer);
+        }
+        
         return custom;
       } else {
         // 비대화형 모드: 기본값 또는 프로젝트 설명 기반 답변 사용 (파이프 입력인 경우만)
@@ -659,17 +690,48 @@ class PRDGenerator {
           console.log(pastelColors.mint('📝 프로젝트 설명: ') + pastelColors.yellow(initialInput));
         } else if (process.stdin.isTTY) {
           // 대화형 모드: 일반적인 inquirer 사용
-          const { description } = await inquirer.prompt([
-            {
-              type: 'editor',
-              name: 'description',
-              message: pastelColors.mint('만들고자 하는 프로젝트에 대해 간단히 설명해주세요 (개행: Alt+Enter, 완료: 저장 후 닫기):'),
-              validate: (input) => {
-                return input.trim() !== '' || '프로젝트 설명을 입력해주세요.';
-              },
-              waitForUseInput: false
-            }
-          ]);
+          console.log(pastelColors.mint('만들고자 하는 프로젝트에 대해 간단히 설명해주세요 (여러 줄 입력 가능, 완료하려면 빈 줄에서 Enter 두 번):'));
+          
+          let descriptionInput = '';
+          let emptyLineCount = 0;
+          const readline = require('readline');
+          
+          const rl = readline.createInterface({
+            input: process.stdin,
+            output: process.stdout,
+            prompt: '> '
+          });
+          
+          rl.prompt();
+          
+          const description = await new Promise((resolve) => {
+            rl.on('line', (line) => {
+              if (line.trim() === '') {
+                emptyLineCount++;
+                if (emptyLineCount >= 2 && descriptionInput.trim() !== '') {
+                  rl.close();
+                  resolve(descriptionInput.trim());
+                  return;
+                }
+              } else {
+                emptyLineCount = 0;
+              }
+              
+              if (descriptionInput) descriptionInput += '\n';
+              descriptionInput += line;
+              rl.prompt();
+            });
+            
+            rl.on('SIGINT', () => {
+              rl.close();
+              process.exit(0);
+            });
+          });
+          
+          if (!description || description.trim() === '') {
+            console.error(chalk.red('프로젝트 설명을 입력해주세요.'));
+            process.exit(1);
+          }
           initialInput = description;
         } else {
           // 비대화형 모드: stdin에서 파이프된 입력 읽기
