@@ -162,14 +162,14 @@ class PRDGenerator {
       if (process.stdin.isTTY || this.commandLineDescription) {
         // 멀티라인 입력을 위한 여러 번 입력받기 방식
         console.log(pastelColors.yellow('직접 입력해주세요. 여러 줄을 원하시면 각 줄을 차례로 입력하세요.'));
-        console.log(pastelColors.gray('빈 줄을 입력하면 완료됩니다.'));
+        console.log(pastelColors.lavender('빈 줄을 입력하면 완료됩니다.'));
         
         let customLines = [];
         
         // 현재 답변이 있으면 기본값으로 설정
         if (currentAnswer) {
           customLines = currentAnswer.split('\n');
-          console.log(pastelColors.gray(`현재 답변: ${currentAnswer}`));
+          console.log(pastelColors.lightPurple(`현재 답변: ${currentAnswer}`));
         }
         
         while (true) {
@@ -743,7 +743,7 @@ class PRDGenerator {
         } else if (process.stdin.isTTY) {
           // 프로젝트 설명 멀티라인 입력
           console.log(pastelColors.mint('만들고자 하는 프로젝트에 대해 설명해주세요. 여러 줄로 입력 가능합니다.'));
-          console.log(pastelColors.gray('빈 줄을 입력하면 완료됩니다.'));
+          console.log(pastelColors.lavender('빈 줄을 입력하면 완료됩니다.'));
           
           let descriptionLines = [];
           
