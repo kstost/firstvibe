@@ -191,13 +191,13 @@ class PRDGenerator {
         console.log(pastelColors.yellow('직접 입력해주세요. 여러 줄을 원하시면 각 줄을 차례로 입력하세요.'));
         console.log(pastelColors.lavender('빈 줄에서 엔터치면 완료됩니다.'));
         
-        let customLines = [];
-        
-        // 현재 답변이 있으면 기본값으로 설정
+        // 수정 모드일 때 기존 답변 표시
         if (currentAnswer) {
-          customLines = currentAnswer.split('\n');
-          console.log(pastelColors.lightPurple(`현재 답변: ${currentAnswer}`));
+          console.log(pastelColors.lightPurple(`기존 답변: ${currentAnswer}`));
+          console.log(pastelColors.peach('새로 입력하시면 기존 내용을 대체합니다.'));
         }
+        
+        let customLines = [];
         
         while (true) {
           const result = await inquirer.prompt([
