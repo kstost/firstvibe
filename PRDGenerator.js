@@ -177,7 +177,7 @@ class PRDGenerator {
             {
               type: 'input',
               name: 'line',
-              message: customLines.length === 0 ? '입력:' : `줄 ${customLines.length + 1} (빈 줄이면 완료):`,
+              message: customLines.length === 0 ? '❯ 입력:' : `❯ 줄 ${customLines.length + 1} (빈 줄이면 완료):`,
               default: ''
             }
           ]);
@@ -752,7 +752,7 @@ class PRDGenerator {
               {
                 type: 'input',
                 name: 'line',
-                message: descriptionLines.length === 0 ? '설명:' : `줄 ${descriptionLines.length + 1} (빈 줄이면 완료):`,
+                message: descriptionLines.length === 0 ? '❯ 설명:' : `❯ 줄 ${descriptionLines.length + 1} (빈 줄이면 완료):`,
                 default: ''
               }
             ]);
