@@ -162,13 +162,14 @@ class PRDGenerator {
         // 대화형 모드 (명령줄 인수 제공 시에도 대화형)
         const { custom } = await inquirer.prompt([
           {
-            type: 'input',
+            type: 'editor',
             name: 'custom',
-            message: pastelColors.yellow('직접 입력해주세요:'),
+            message: pastelColors.yellow('직접 입력해주세요 (개행: Alt+Enter, 완료: 저장 후 닫기):'),
             default: currentAnswer && !choices.slice(0, -1).includes(currentAnswer) ? currentAnswer : '',
             validate: (input) => {
               return input.trim() !== '' || '답변을 입력해주세요.';
-            }
+            },
+            waitForUseInput: false
           }
         ]);
         return custom;
@@ -660,12 +661,13 @@ class PRDGenerator {
           // 대화형 모드: 일반적인 inquirer 사용
           const { description } = await inquirer.prompt([
             {
-              type: 'input',
+              type: 'editor',
               name: 'description',
-              message: pastelColors.mint('만들고자 하는 프로젝트에 대해 간단히 설명해주세요:'),
+              message: pastelColors.mint('만들고자 하는 프로젝트에 대해 간단히 설명해주세요 (개행: Alt+Enter, 완료: 저장 후 닫기):'),
               validate: (input) => {
                 return input.trim() !== '' || '프로젝트 설명을 입력해주세요.';
-              }
+              },
+              waitForUseInput: false
             }
           ]);
           initialInput = description;
@@ -678,7 +680,8 @@ class PRDGenerator {
             stdinInput += chunk;
           }
           
-          initialInput = stdinInput.trim();
+          // 개행 문자를 보존하면서 앞뒤 공백만 제거
+          initialInput = stdinInput.replace(/^\s+|\s+$/g, '');
           
           if (!initialInput) {
             console.error(chalk.red('❌ 파이프된 입력이 비어있습니다.'));
