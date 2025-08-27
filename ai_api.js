@@ -453,7 +453,7 @@ export async function callAI({
           {
             type: 'confirm',
             name: 'shareError',
-            message: '에러메시지를 확인하시겠습니까? 개발자에게 공유하여 문제를 개선할 수 있습니다.',
+            message: '에러메시지를 확인하시겠습니까? 개발자(monogatree@gmail.com)에게 공유하여 문제를 개선할 수 있습니다.',
             default: false
           }
         ]);
