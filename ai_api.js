@@ -484,7 +484,7 @@ export async function callAI({
         retryInfo.attempt = 0;
         continue;
       } else {
-        throw new Error('사용자가 작업을 중단했습니다.');
+        process.exit(0);
       }
     }
   }
