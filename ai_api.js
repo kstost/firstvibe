@@ -76,13 +76,6 @@ function createClaudeClient() {
   return new Anthropic({ apiKey: config.claude.apiKey });
 }
 
-/**
- * Gemini 응답 파싱 함수
- * @param {Object} response - Gemini API 응답
- * @returns {string|Object} 파싱된 텍스트 또는 JSON 객체
- */
-// function parseGeminiResponse(response) {
-// }
 
 /**
  * Claude 응답 파싱 함수
@@ -369,12 +362,12 @@ export async function callAI({
           if (response.output_text) {
             responsedBody = response.output_text;
           } else {
+            const messageOutput = response.output.find(item => item.type === 'message');
             responsedBody = messageOutput.content[0].text;
           }
         } catch { }
         responsedResult = response
       }
-      // if ('BUUUUUUUUUUUUG') result = '123';
       const finalResponse = parseJson ? jsonAIParse(responsedBody) : responsedBody;
       if (!finalResponse) {
         const err = new Error(``);
