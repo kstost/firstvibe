@@ -77,71 +77,12 @@ function createClaudeClient() {
 }
 
 /**
- * 안전한 응답 파싱 함수 (OpenAI 전용)
- * @param {Object} response - OpenAI API 응답
- * @returns {string|Object} 파싱된 텍스트 또는 JSON 객체
- */
-function parseOpenAIResponse(response) {
-  if (!response) {
-    throw new Error('API 응답이 null 또는 undefined입니다.');
-  }
-
-  let responseText;
-
-  // 간단하게 output_text 필드 사용 (우선순위)
-  if (response.output_text) {
-    responseText = response.output_text;
-  } else {
-    // output_text가 없으면 output 배열에서 message 타입 찾기
-    if (!response.output || !Array.isArray(response.output)) {
-      console.error('응답 구조 오류:', JSON.stringify(response, null, 2));
-      throw new Error('API 응답 구조가 올바르지 않습니다.');
-    }
-
-    // message 타입 찾기
-    const messageOutput = response.output.find(item => item.type === 'message');
-    if (!messageOutput) {
-      throw new Error('API 응답에서 message 타입을 찾을 수 없습니다.');
-    }
-
-    if (!messageOutput.content || !Array.isArray(messageOutput.content) || messageOutput.content.length === 0) {
-      console.error('content 구조 오류:', JSON.stringify(messageOutput, null, 2));
-      throw new Error('API 응답의 content가 올바르지 않습니다.');
-    }
-
-    if (!messageOutput.content[0].text) {
-      console.error('text 누락:', JSON.stringify(messageOutput.content[0], null, 2));
-      throw new Error('API 응답에 text가 없습니다.');
-    }
-
-    responseText = messageOutput.content[0].text;
-  }
-  return responseText;
-}
-
-/**
  * Gemini 응답 파싱 함수
  * @param {Object} response - Gemini API 응답
  * @returns {string|Object} 파싱된 텍스트 또는 JSON 객체
  */
-function parseGeminiResponse(response) {
-  if (!response) {
-    throw new Error('API 응답이 null 또는 undefined입니다.');
-  }
-
-  if (!response.candidates || !Array.isArray(response.candidates) || response.candidates.length === 0) {
-    console.error('Gemini 응답 구조 오류:', JSON.stringify(response, null, 2));
-    throw new Error('Gemini API 응답 구조가 올바르지 않습니다.');
-  }
-
-  const candidate = response.candidates[0];
-  if (!candidate.content || !candidate.content.parts || candidate.content.parts.length === 0) {
-    console.error('Gemini 응답 내용 구조 오류:', JSON.stringify(response, null, 2));
-    throw new Error('Gemini API 응답 내용 구조가 올바르지 않습니다.');
-  }
-
-  return candidate.content.parts[0].text;
-}
+// function parseGeminiResponse(response) {
+// }
 
 /**
  * Claude 응답 파싱 함수
@@ -229,22 +170,17 @@ async function callGeminiAI({
     saveApiLog(purpose, 'REQUEST', requestData, 'gemini', model);
   }
 
-  // Raw 페이로드 출력
-  // console.log(`🔵 [${purpose}] Gemini Request Payload:`, JSON.stringify(requestPayload, null, 2));
-
   // Gemini REST API 호출
   const response = await axios.post(`/models/${model}:generateContent`, requestPayload, axiosConfig);
   const result = response.data;
-
-  // Raw 응답 출력
-  // console.log(`🟢 [${purpose}] Gemini Response Payload:`, JSON.stringify(result, null, 2));
 
   // 로깅이 활성화되어 있으면 응답 로그 저장
   if (effectiveConfig.app.log) {
     saveApiLog(purpose, 'RESPONSE', result, 'gemini', model);
   }
-
-  return parseGeminiResponse(result);
+  let body;
+  try { body = result.candidates[0].content.parts[0].text; } catch { }
+  return { body, result };
 }
 
 /**
@@ -351,11 +287,14 @@ export async function callAI({
     try {
       if (retryInfo.attempt > 0) {
         spinner.text = `${spinnerText} (재시도 ${retryInfo.attempt}/${retryInfo.maxRetries})`;
+      } else {
+        spinner.text = spinnerText;
       }
 
       const effectiveConfig = getEffectiveConfig();
       const provider = effectiveConfig.provider;
-      let result;
+      let responsedResult;
+      let responsedBody;
 
       if (provider === 'claude') {
         // Claude API 사용
@@ -368,7 +307,7 @@ export async function callAI({
           jsonSchema = textOptions.format.schema;
         }
 
-        result = await callClaudeAI({
+        responsedResult = await callClaudeAI({
           purpose,
           model,
           systemMessage,
@@ -394,13 +333,15 @@ export async function callAI({
           };
         }
 
-        result = await callGeminiAI({
+        let response = await callGeminiAI({
           purpose,
           model,
           systemInstruction,
           userMessage,
           generationConfig: config,
         });
+        responsedResult = response.result;
+        responsedBody = response.body;
 
       } else {
         // OpenAI API 사용 (기본값)
@@ -421,18 +362,21 @@ export async function callAI({
         }
 
         const response = await openai.responses.create(requestData);
-
-        // 로깅이 활성화되어 있으면 응답 로그 저장
         if (effectiveConfig.app.log) {
           saveApiLog(purpose, 'RESPONSE', response, 'openai', model);
         }
-
-        result = parseOpenAIResponse(response);
+        try {
+          if (response.output_text) {
+            responsedBody = response.output_text;
+          } else {
+            responsedBody = messageOutput.content[0].text;
+          }
+        } catch { }
+        responsedResult = response
       }
       // if ('BUUUUUUUUUUUUG') result = '123';
-
-      if (parseJson) result = jsonAIParse(result);
-      if (!result) {
+      const finalResponse = parseJson ? jsonAIParse(responsedBody) : responsedBody;
+      if (!finalResponse) {
         const err = new Error(``);
         err.status = 100101;
         throw err;
@@ -440,7 +384,7 @@ export async function callAI({
 
       spinner.stop();
 
-      return result;
+      return finalResponse;
 
     } catch (error) {
       // 429 응답코드 처리 (Rate Limit)
@@ -459,10 +403,10 @@ export async function callAI({
         }
       }
       if (error.status === 100101) {
-        checkRefresh({ maxRetries: 5 });
+        checkRefresh({ maxRetries: 2 });
         retryInfo.attempt++;
         if (retryInfo.attempt <= retryInfo.maxRetries) {
-          spinner.text = `${spinnerText} (응답형식 맞지 않음, 재시도 ${attempt}/${maxRetries})`;
+          spinner.text = `${spinnerText} (응답형식 맞지 않음, 재시도 ${retryInfo.attempt}/${retryInfo.maxRetries})`;
           continue;
         }
       }
@@ -478,8 +422,9 @@ export async function callAI({
           default: false
         }
       ]);
-      
+
       if (shouldContinue) {
+        spinner.text = spinnerText;
         spinner.start();
         retryInfo.attempt = 0;
         continue;
