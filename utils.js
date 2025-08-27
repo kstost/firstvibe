@@ -67,17 +67,17 @@ export function ensureLogDirectory() {
  */
 export function generateLogFileName(purpose, type, provider = '', model = '') {
   const now = new Date();
-  const timestamp = now.getFullYear() + 
-    String(now.getMonth() + 1).padStart(2, '0') + 
-    String(now.getDate()).padStart(2, '0') + 
-    String(now.getHours()).padStart(2, '0') + 
-    String(now.getMinutes()).padStart(2, '0') + 
-    String(now.getSeconds()).padStart(2, '0') + 
+  const timestamp = now.getFullYear() +
+    String(now.getMonth() + 1).padStart(2, '0') +
+    String(now.getDate()).padStart(2, '0') +
+    String(now.getHours()).padStart(2, '0') +
+    String(now.getMinutes()).padStart(2, '0') +
+    String(now.getSeconds()).padStart(2, '0') +
     String(now.getMilliseconds()).padStart(3, '0');
-  
+
   const providerPart = provider ? `-${provider}` : '';
   const modelPart = model ? `-${model}` : '';
-  
+
   return `${timestamp}-${purpose}${providerPart}${modelPart}-${type}.json`;
 }
 
@@ -94,7 +94,7 @@ export function saveApiLog(purpose, type, data, provider = '', model = '') {
     const logDir = ensureLogDirectory();
     const fileName = generateLogFileName(purpose, type, provider, model);
     const filePath = path.join(logDir, fileName);
-    
+
     const logData = {
       timestamp: new Date().toISOString(),
       purpose,
@@ -103,9 +103,9 @@ export function saveApiLog(purpose, type, data, provider = '', model = '') {
       model,
       data
     };
-    
+
     fs.writeFileSync(filePath, JSON.stringify(logData, null, 2), 'utf8');
-    
+
     return filePath;
   } catch (error) {
     console.warn('로그 저장 중 오류 발생:', error.message);
@@ -121,7 +121,7 @@ export function saveApiLog(purpose, type, data, provider = '', model = '') {
  * @returns {string} 들여쓰기가 적용된 텍스트
  */
 export function indentLines(content, indentLevel = 0) {
-    return content.split('\n').map(line => '   '.repeat(indentLevel) + line).join('\n');
+  return content.split('\n').map(line => '   '.repeat(indentLevel) + line).join('\n');
 }
 
 /**
@@ -136,43 +136,95 @@ export function indentLines(content, indentLevel = 0) {
  * - {content: "text"}: 텍스트 컨텐츠로 처리
  */
 export function tagify(json, indentLevel = 0) {
-    if (!json) return '';
+  if (!json) return '';
 
-    // 문자열이면 바로 content로 처리
-    if (typeof json === 'string') {
-        return indentLines(json, indentLevel);
+  // 문자열이면 바로 content로 처리
+  if (typeof json === 'string') {
+    return indentLines(json, indentLevel);
+  }
+
+  // tagname이 있으면 tag로 처리
+  if (json.tagname) {
+    let openTag = `<${json.tagname}`;
+
+    // attributes가 있으면 추가
+    if (json.attr && typeof json.attr === 'object') {
+      for (const [key, value] of Object.entries(json.attr)) {
+        openTag += ` ${key}="${value}"`;
+      }
     }
 
-    // tagname이 있으면 tag로 처리
-    if (json.tagname) {
-        let openTag = `<${json.tagname}`;
+    openTag += '>';
+    const closeTag = `</${json.tagname}>`;
 
-        // attributes가 있으면 추가
-        if (json.attr && typeof json.attr === 'object') {
-            for (const [key, value] of Object.entries(json.attr)) {
-                openTag += ` ${key}="${value}"`;
-            }
-        }
+    let result = indentLines(openTag, indentLevel) + '\n';
 
-        openTag += '>';
-        const closeTag = `</${json.tagname}>`;
-
-        let result = indentLines(openTag, indentLevel) + '\n';
-
-        if (json.children && Array.isArray(json.children)) {
-            for (const child of json.children) {
-                result += tagify(child, indentLevel + 1) + '\n';
-            }
-        }
-
-        result += indentLines(closeTag, indentLevel);
-        return result;
+    if (json.children && Array.isArray(json.children)) {
+      for (const child of json.children) {
+        result += tagify(child, indentLevel + 1) + '\n';
+      }
     }
 
-    // content가 있으면 content로 처리
-    if (json.content) {
-        return indentLines(json.content, indentLevel);
-    }
+    result += indentLines(closeTag, indentLevel);
+    return result;
+  }
 
-    return '';
+  // content가 있으면 content로 처리
+  if (json.content) {
+    return indentLines(json.content, indentLevel);
+  }
+
+  return '';
+}
+
+
+export function extractFirstJson(str) {
+  let accumulatedStr = '';
+  for (let i = 0; i < str.length; i++) {
+    accumulatedStr += str[i];
+    try {
+      const jsonObject = JSON.parse(accumulatedStr);
+      // JSON 객체가 성공적으로 파싱되면 해당 객체를 반환합니다.
+      return JSON.stringify(jsonObject);
+    } catch (e) {
+      // 파싱 실패는 무시하고 계속 진행합니다.
+    }
+  }
+  // 문자열 전체를 탐색한 후에도 유효한 JSON 객체를 찾지 못한 경우 null을 반환합니다.
+  return null;
+}
+export function removeFencedCodeBlockIfWrapped(text) {
+  const trimmedText = text.trim();
+
+  // fenced code block 패턴: ```[언어]로 시작하고 ```로 끝남
+  const fencedBlockRegex = /^```([a-zA-Z0-9]*)\s*\n?([\s\S]*?)\n?```$/;
+  const match = trimmedText.match(fencedBlockRegex);
+
+  if (match) {
+    // 전체 콘텐츠가 fenced code block으로만 구성된 경우
+    // (외부에 다른 내용이 없는 경우에만 제거)
+    const [, language, content] = match;
+
+    // 코드 블록 외부에 다른 텍스트가 있는지 확인
+    const beforeBlock = trimmedText.substring(0, trimmedText.indexOf('```'));
+    const afterBlock = trimmedText.substring(trimmedText.lastIndexOf('```') + 3);
+
+    // 앞뒤에 의미있는 텍스트가 없으면 코드 블록 내용만 반환
+    if (beforeBlock.trim() === '' && afterBlock.trim() === '') {
+      return content.trim();
+    }
+  }
+
+  return text;
+}
+export function jsonAIParse(str) {
+  try {
+    if ((typeof str) !== 'string') throw null;
+    str = removeFencedCodeBlockIfWrapped(str)
+    str = str.trim();
+    if ((str.startsWith('{') && str.endsWith('}')) || (str.startsWith('[') && str.endsWith(']'))) { } else { throw null }
+    str = extractFirstJson(str)
+    return JSON.parse(str)
+  } catch { }
+  return null;
 }

@@ -3,8 +3,9 @@ import Anthropic from "@anthropic-ai/sdk";
 import axios from "axios";
 import ora from "ora";
 import chalk from "chalk";
+import inquirer from "inquirer";
 import { getEffectiveConfig } from "./config.js";
-import { saveApiLog } from "./utils.js";
+import { saveApiLog, jsonAIParse } from "./utils.js";
 
 /**
  * OpenAI JSON Schema를 Gemini 호환 형식으로 변환
@@ -78,10 +79,9 @@ function createClaudeClient() {
 /**
  * 안전한 응답 파싱 함수 (OpenAI 전용)
  * @param {Object} response - OpenAI API 응답
- * @param {boolean} parseJson - JSON 파싱 여부 (기본: false)
  * @returns {string|Object} 파싱된 텍스트 또는 JSON 객체
  */
-function parseOpenAIResponse(response, parseJson = false) {
+function parseOpenAIResponse(response) {
   if (!response) {
     throw new Error('API 응답이 null 또는 undefined입니다.');
   }
@@ -116,17 +116,15 @@ function parseOpenAIResponse(response, parseJson = false) {
 
     responseText = messageOutput.content[0].text;
   }
-
-  return parseJson ? JSON.parse(responseText) : responseText;
+  return responseText;
 }
 
 /**
  * Gemini 응답 파싱 함수
  * @param {Object} response - Gemini API 응답
- * @param {boolean} parseJson - JSON 파싱 여부 (기본: false)
  * @returns {string|Object} 파싱된 텍스트 또는 JSON 객체
  */
-function parseGeminiResponse(response, parseJson = false) {
+function parseGeminiResponse(response) {
   if (!response) {
     throw new Error('API 응답이 null 또는 undefined입니다.');
   }
@@ -142,68 +140,15 @@ function parseGeminiResponse(response, parseJson = false) {
     throw new Error('Gemini API 응답 내용 구조가 올바르지 않습니다.');
   }
 
-  let responseText = candidate.content.parts[0].text;
-
-  // Fenced code block 제거 처리 (조건부)
-  function removeFencedCodeBlockIfWrapped(text) {
-    const trimmedText = text.trim();
-
-    // fenced code block 패턴: ```[언어]로 시작하고 ```로 끝남
-    const fencedBlockRegex = /^```([a-zA-Z0-9]*)\s*\n?([\s\S]*?)\n?```$/;
-    const match = trimmedText.match(fencedBlockRegex);
-
-    if (match) {
-      // 전체 콘텐츠가 fenced code block으로만 구성된 경우
-      // (외부에 다른 내용이 없는 경우에만 제거)
-      const [, language, content] = match;
-
-      // 코드 블록 외부에 다른 텍스트가 있는지 확인
-      const beforeBlock = trimmedText.substring(0, trimmedText.indexOf('```'));
-      const afterBlock = trimmedText.substring(trimmedText.lastIndexOf('```') + 3);
-
-      // 앞뒤에 의미있는 텍스트가 없으면 코드 블록 내용만 반환
-      if (beforeBlock.trim() === '' && afterBlock.trim() === '') {
-        return content.trim();
-      }
-    }
-
-    return text;
-  }
-
-  // JSON 파싱이 필요한 경우 fenced code block 제거 후 JSON 추출
-  if (parseJson) {
-    // 먼저 fenced code block 제거 시도
-    responseText = removeFencedCodeBlockIfWrapped(responseText);
-
-    // 앞뒤 잡문 제거 (JSON 시작/끝 기준)
-    const jsonStart = responseText.indexOf('{');
-    const jsonEnd = responseText.lastIndexOf('}');
-    if (jsonStart !== -1 && jsonEnd !== -1 && jsonEnd > jsonStart) {
-      responseText = responseText.substring(jsonStart, jsonEnd + 1);
-    } else {
-      // 배열 형태 JSON인 경우
-      const arrayStart = responseText.indexOf('[');
-      const arrayEnd = responseText.lastIndexOf(']');
-      if (arrayStart !== -1 && arrayEnd !== -1 && arrayEnd > arrayStart) {
-        responseText = responseText.substring(arrayStart, arrayEnd + 1);
-      }
-    }
-  }
-  // parseJson이 false인 경우 일반 텍스트에서 fenced code block 제거
-  else {
-    responseText = removeFencedCodeBlockIfWrapped(responseText);
-  }
-
-  return parseJson ? JSON.parse(responseText) : responseText;
+  return candidate.content.parts[0].text;
 }
 
 /**
  * Claude 응답 파싱 함수
  * @param {Object} response - Claude API 응답
- * @param {boolean} parseJson - JSON 파싱 여부 (기본: false)
  * @returns {string|Object} 파싱된 텍스트 또는 JSON 객체
  */
-function parseClaudeResponse(response, parseJson = false) {
+function parseClaudeResponse(response) {
   if (!response) {
     throw new Error('API 응답이 null 또는 undefined입니다.');
   }
@@ -231,12 +176,10 @@ function parseClaudeResponse(response, parseJson = false) {
     throw new Error('Claude API 응답에서 유효한 컨텐츠를 찾을 수 없습니다.');
   }
 
-  // structured output의 경우 이미 객체이므로 parseJson 무시
   if (typeof result === 'object') {
     return result;
   }
-
-  return parseJson ? JSON.parse(result) : result;
+  return result;
 }
 
 /**
@@ -247,9 +190,6 @@ function parseClaudeResponse(response, parseJson = false) {
  * @param {string} options.systemInstruction - 시스템 지시사항
  * @param {string} options.userMessage - 사용자 메시지
  * @param {Object} options.generationConfig - 생성 설정
- * @param {string} options.spinnerText - 로딩 스피너 텍스트
- * @param {string} options.spinnerColor - 스피너 색상
- * @param {boolean} options.parseJson - JSON 파싱 여부
  * @returns {Promise<string|Object>} API 응답
  */
 async function callGeminiAI({
@@ -258,9 +198,6 @@ async function callGeminiAI({
   systemInstruction,
   userMessage,
   generationConfig = {},
-  spinnerText,
-  spinnerColor,
-  parseJson
 }) {
   const effectiveConfig = getEffectiveConfig();
   const axiosConfig = createGeminiAxiosConfig();
@@ -307,7 +244,7 @@ async function callGeminiAI({
     saveApiLog(purpose, 'RESPONSE', result, 'gemini', model);
   }
 
-  return parseGeminiResponse(result, parseJson);
+  return parseGeminiResponse(result);
 }
 
 /**
@@ -318,9 +255,6 @@ async function callGeminiAI({
  * @param {string} options.systemMessage - 시스템 메시지
  * @param {string} options.userMessage - 사용자 메시지
  * @param {Object} options.jsonSchema - JSON 스키마 (옵션)
- * @param {string} options.spinnerText - 로딩 스피너 텍스트
- * @param {string} options.spinnerColor - 스피너 색상
- * @param {boolean} options.parseJson - JSON 파싱 여부
  * @returns {Promise<string|Object>} API 응답
  */
 async function callClaudeAI({
@@ -329,9 +263,6 @@ async function callClaudeAI({
   systemMessage,
   userMessage,
   jsonSchema = null,
-  spinnerText,
-  spinnerColor,
-  parseJson
 }) {
   const effectiveConfig = getEffectiveConfig();
   const claude = createClaudeClient();
@@ -383,7 +314,7 @@ async function callClaudeAI({
     saveApiLog(purpose, 'RESPONSE', response, 'claude', model);
   }
 
-  return parseClaudeResponse(response, parseJson);
+  return parseClaudeResponse(response);
 }
 
 /**
@@ -409,17 +340,17 @@ export async function callAI({
   spinnerText = 'AI 처리 중...',
   spinnerColor = 'cyan',
   parseJson = false,
-  maxRetries = 1000
 }) {
   let spinner = ora({
     text: spinnerText,
     color: spinnerColor
   }).start();
 
-  for (let attempt = 1; attempt <= maxRetries + 1; attempt++) {
+  let retryInfo = { attempt: 0 };
+  while (true) {
     try {
-      if (attempt > 1) {
-        spinner.text = `${spinnerText} (재시도 ${attempt - 1}/${maxRetries})`;
+      if (retryInfo.attempt > 0) {
+        spinner.text = `${spinnerText} (재시도 ${retryInfo.attempt}/${retryInfo.maxRetries})`;
       }
 
       const effectiveConfig = getEffectiveConfig();
@@ -445,7 +376,6 @@ export async function callAI({
           jsonSchema,
           spinnerText,
           spinnerColor,
-          parseJson
         });
 
       } else if (provider === 'gemini') {
@@ -470,9 +400,6 @@ export async function callAI({
           systemInstruction,
           userMessage,
           generationConfig: config,
-          spinnerText,
-          spinnerColor,
-          parseJson
         });
 
       } else {
@@ -493,54 +420,72 @@ export async function callAI({
           saveApiLog(purpose, 'REQUEST', requestData, 'openai', model);
         }
 
-        // Raw 페이로드 출력
-        // console.log(`🔵 [${purpose}] OpenAI Request Payload:`, JSON.stringify(requestData, null, 2));
-
         const response = await openai.responses.create(requestData);
-
-        // Raw 응답 출력
-        // console.log(`🟢 [${purpose}] OpenAI Response Payload:`, JSON.stringify(response, null, 2));
 
         // 로깅이 활성화되어 있으면 응답 로그 저장
         if (effectiveConfig.app.log) {
           saveApiLog(purpose, 'RESPONSE', response, 'openai', model);
         }
 
-        result = parseOpenAIResponse(response, parseJson);
+        result = parseOpenAIResponse(response);
       }
+      // if ('BUUUUUUUUUUUUG') result = '123';
 
-      // JSON 파싱이 필요한 경우 유효성 검증
-      if (parseJson && typeof result === 'string') {
-        try {
-          JSON.parse(result);
-        } catch (jsonError) {
-          throw new Error(`Invalid JSON response: ${jsonError.message}`);
-        }
+      if (parseJson) result = jsonAIParse(result);
+      if (!result) {
+        const err = new Error(``);
+        err.status = 100101;
+        throw err;
       }
 
       spinner.stop();
+
       return result;
 
     } catch (error) {
       // 429 응답코드 처리 (Rate Limit)
+      const checkRefresh = (options) => {
+        if (retryInfo.status !== error.status) {
+          retryInfo = { status: error.status, attempt: 0, ...options };
+        }
+      }
       if (error.status === 429 || error.response?.status === 429) {
-        if (attempt <= maxRetries) {
-          spinner.text = `${spinnerText} (Rate limit 도달, 10초 후 재시도 ${attempt}/${maxRetries})`;
+        checkRefresh({ maxRetries: 1000 });
+        retryInfo.attempt++;
+        if (retryInfo.attempt <= retryInfo.maxRetries) {
+          spinner.text = `${spinnerText} (Rate limit 도달, 10초 후 재시도 ${retryInfo.attempt}/${retryInfo.maxRetries})`;
           await new Promise(resolve => setTimeout(resolve, 10000));
           continue;
         }
       }
-
-      // JSON 파싱 오류이고 재시도 가능한 경우
-      if (parseJson && error.message.includes('JSON') && attempt <= maxRetries) {
-        // 스피너를 유지하고 재시도 텍스트만 업데이트
-        continue;
+      if (error.status === 100101) {
+        checkRefresh({ maxRetries: 5 });
+        retryInfo.attempt++;
+        if (retryInfo.attempt <= retryInfo.maxRetries) {
+          spinner.text = `${spinnerText} (응답형식 맞지 않음, 재시도 ${attempt}/${maxRetries})`;
+          continue;
+        }
       }
 
-      // 기타 모든 에러는 즉시 프로그램 종료
+
+      // 문제가 지속되고 있는 경우 사용자에게 계속 진행 여부 확인
       spinner.stop();
-      console.error(chalk.red(`❌ ${purpose} API 호출 중 오류가 발생했습니다:`), error.message);
-      process.exit(1);
+      const { shouldContinue } = await inquirer.prompt([
+        {
+          type: 'confirm',
+          name: 'shouldContinue',
+          message: '문제가 지속적으로 생기고 있습니다. 계속 진행하시겠습니까?',
+          default: false
+        }
+      ]);
+      
+      if (shouldContinue) {
+        spinner.start();
+        retryInfo.attempt = 0;
+        continue;
+      } else {
+        throw new Error('사용자가 작업을 중단했습니다.');
+      }
     }
   }
 }
