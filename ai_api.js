@@ -448,6 +448,21 @@ export async function callAI({
         retryInfo.attempt = 0;
         continue;
       } else {
+        // 종료 전 에러 메시지 확인 프롬프트
+        const { shareError } = await inquirer.prompt([
+          {
+            type: 'confirm',
+            name: 'shareError',
+            message: '에러메시지를 확인하시겠습니까? 개발자에게 공유하여 문제를 개선할 수 있습니다.',
+            default: false
+          }
+        ]);
+
+        if (shareError && error.responsedResult) {
+          console.log('\n=== 에러 상세 정보 ===');
+          console.log(JSON.stringify(error.responsedResult));
+        }
+        
         process.exit(0);
       }
     }
