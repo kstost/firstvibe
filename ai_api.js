@@ -4,8 +4,17 @@ import axios from "axios";
 import ora from "ora";
 import chalk from "chalk";
 import inquirer from "inquirer";
+import { z } from "zod";
 import { getEffectiveConfig } from "./config.js";
 import { saveApiLog, jsonAIParse } from "./utils.js";
+
+// QUESTION 응답 구조 정의
+const QuestionSchema = z.object({
+  questions: z.array(z.object({
+    question: z.string(),
+    choices: z.array(z.string())
+  }))
+});
 
 /**
  * OpenAI JSON Schema를 Gemini 호환 형식으로 변환
@@ -369,6 +378,21 @@ export async function callAI({
         responsedResult = response
       }
       const finalResponse = parseJson ? jsonAIParse(responsedBody) : responsedBody;
+      
+      // QUESTION purpose일 때 JSON 구조 검증
+      if (purpose === 'QUESTION') {
+        try {
+          // finalResponse가 JSON 형태인지 확인하고 검증
+          const validatedResponse = QuestionSchema.parse(finalResponse);
+          return validatedResponse;
+        } catch (zodError) {
+          console.error('QUESTION 응답 형식 검증 실패:', zodError);
+          
+          const err = new Error('QUESTION 응답 형식이 올바르지 않음');
+          err.status = 100101;
+          throw err;
+        }
+      }
       if (!finalResponse) {
         const err = new Error(``);
         err.status = 100101;
@@ -376,7 +400,9 @@ export async function callAI({
       }
 
       spinner.stop();
-
+      // if (parseJson) {
+      //   console.log(JSON.stringify(finalResponse, null, 2));
+      // }
       return finalResponse;
 
     } catch (error) {
