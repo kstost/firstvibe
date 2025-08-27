@@ -75,7 +75,7 @@ AI 기반 PRD, TRD, TODO List 자동 생성 도구
   1. 초기 설정: firstvibe (AI 제공자 및 API 키 설정)
   2. 모드 선택: firstvibe config mode cheap (또는 expensive)  
   3. 문서 생성: firstvibe 또는 firstvibe -f 파일명.txt`)
-  .version('1.2.1')
+  .version('1.2.2')
   .argument('[description]', '프로젝트 설명 (옵션, 제공하지 않으면 대화형으로 입력)')
   .option('-v, --verbose', '상세 출력 모드 (디버깅 정보 표시)')
   .option('--skip-trd', 'TRD 생성 건너뛰기 (PRD만 생성)')
