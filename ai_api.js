@@ -386,6 +386,7 @@ export async function callAI({
           const err = new Error('QUESTION 응답 형식이 올바르지 않음');
           err.status = 100101;
           err.finalResponse = finalResponse;
+          err.responsedResult = responsedResult;
           err.zodError = zodError;
           throw err;
         }
@@ -394,6 +395,7 @@ export async function callAI({
         const err = new Error('finalResponse가 비어있음');
         err.status = 100101;
         err.finalResponse = finalResponse;
+        err.responsedResult = responsedResult;
         throw err;
       }
 
