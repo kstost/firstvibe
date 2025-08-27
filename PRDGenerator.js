@@ -318,7 +318,51 @@ class PRDGenerator {
         return;
       }
 
-      const trd = await makeTRD(prdDocument);
+      // TRD 생성을 위한 추가 재료 준비
+      const qaStructure = {
+        tagname: "trd_generation_materials",
+        children: [
+          {
+            tagname: "prd_document",
+            children: [{ content: prdDocument }]
+          },
+          {
+            tagname: "initial_project_description",
+            children: [{ content: this.qaHistory[0].userInput }]
+          },
+          {
+            tagname: "qa_results",
+            children: []
+          }
+        ]
+      };
+
+      // Q&A 결과 구조화
+      for (let i = 0; i < this.qaHistory.length; i++) {
+        const qa = this.qaHistory[i];
+        if (qa.aiResponse && qa.aiResponse.questions && qa.userAnswer) {
+          const question = qa.aiResponse.questions[0].question;
+          const qaItem = {
+            tagname: "qa_item",
+            children: [
+              {
+                tagname: "question",
+                children: [{ content: question }]
+              },
+              {
+                tagname: "answer", 
+                children: [{ content: qa.userAnswer }]
+              }
+            ]
+          };
+          qaStructure.children[2].children.push(qaItem);
+        }
+      }
+
+      // tagify를 사용하여 구조화된 텍스트 생성
+      const trdMaterials = tagify(qaStructure);
+
+      const trd = await makeTRD(trdMaterials);
 
       const trdPath = 'trd.md';
       fs.writeFileSync(trdPath, trd, 'utf8');
