@@ -378,24 +378,22 @@ export async function callAI({
         responsedResult = response
       }
       const finalResponse = parseJson ? jsonAIParse(responsedBody) : responsedBody;
-      
-      // QUESTION purpose일 때 JSON 구조 검증
+
       if (purpose === 'QUESTION') {
         try {
-          // finalResponse가 JSON 형태인지 확인하고 검증
-          const validatedResponse = QuestionSchema.parse(finalResponse);
-          return validatedResponse;
+          QuestionSchema.parse(finalResponse);
         } catch (zodError) {
-          console.error('QUESTION 응답 형식 검증 실패:', zodError);
-          
           const err = new Error('QUESTION 응답 형식이 올바르지 않음');
           err.status = 100101;
+          err.finalResponse = finalResponse;
+          err.zodError = zodError;
           throw err;
         }
       }
       if (!finalResponse) {
-        const err = new Error(``);
+        const err = new Error('finalResponse가 비어있음');
         err.status = 100101;
+        err.finalResponse = finalResponse;
         throw err;
       }
 
