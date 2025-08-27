@@ -163,7 +163,7 @@ class PRDGenerator {
     }
 
     let selection;
-    
+
     if (process.stdin.isTTY || this.commandLineDescription) {
       // 대화형 모드: 일반적인 inquirer 사용 (명령줄 인수 제공 시에도 대화형)
       const result = await inquirer.prompt([
@@ -190,15 +190,15 @@ class PRDGenerator {
         // 멀티라인 입력을 위한 여러 번 입력받기 방식
         console.log(pastelColors.yellow('직접 입력해주세요. 여러 줄을 원하시면 각 줄을 차례로 입력하세요.'));
         console.log(pastelColors.lavender('빈 줄에서 엔터치면 완료됩니다.'));
-        
+
         // 수정 모드일 때 기존 답변 표시
         if (currentAnswer) {
           console.log(pastelColors.lightPurple(`기존 답변: ${currentAnswer}`));
           console.log(pastelColors.peach('새로 입력하시면 기존 내용을 대체합니다.'));
         }
-        
+
         let customLines = [];
-        
+
         while (true) {
           const result = await inquirer.prompt([
             {
@@ -208,24 +208,24 @@ class PRDGenerator {
               default: ''
             }
           ]);
-          
+
           const line = result.line?.trim();
-          
+
           if (!line) {
             // 빈 줄이면 완료
             break;
           }
-          
+
           customLines.push(line);
         }
-        
+
         const custom = customLines.join('\n').trim();
-        
+
         if (!custom) {
           console.log(chalk.red('답변을 입력해주세요.'));
           return await this.askQuestion(questionData, currentAnswer);
         }
-        
+
         return custom;
       } else {
         // 비대화형 모드: 기본값 또는 프로젝트 설명 기반 답변 사용 (파이프 입력인 경우만)
@@ -269,7 +269,7 @@ class PRDGenerator {
               children: [{ content: question }]
             },
             {
-              tagname: "answer", 
+              tagname: "answer",
               children: [{ content: qa.userAnswer }]
             }
           ]
@@ -337,7 +337,7 @@ class PRDGenerator {
                 children: [{ content: question }]
               },
               {
-                tagname: "answer", 
+                tagname: "answer",
                 children: [{ content: qa.userAnswer }]
               }
             ]
@@ -350,12 +350,12 @@ class PRDGenerator {
         tagname: "trd_generation_materials",
         children: [
           {
-            tagname: "prd_document",
-            children: [{ content: prdDocument }]
-          },
-          {
             tagname: "initial_project_description",
             children: [{ content: this.qaHistory[0].userInput }]
+          },
+          {
+            tagname: "prd_document",
+            children: [{ content: prdDocument }]
           },
           qaResultsSection
         ]
@@ -531,7 +531,7 @@ class PRDGenerator {
       console.log(pastelColors.peach('비대화형 모드: 답변을 자동으로 확인하고 PRD 생성을 시작합니다.'));
       return true;
     }
-    
+
     // 대화형 모드: 기존 로직
     while (true) {
       this.displayQASummary();
@@ -803,17 +803,17 @@ class PRDGenerator {
       // firstvibe.json 데이터가 있으면 설문 과정 건너뛰기
       if (this.firstvibeJsonData) {
         console.log(pastelColors.lavender.bold('🚀 firstvibe.json에서 데이터를 복원합니다.'));
-        
+
         if (this.restoreQAHistoryFromJson()) {
           console.log(pastelColors.mint(`📝 프로젝트: ${this.firstvibeJsonData.project.description}`));
           console.log(pastelColors.lightPurple(`📊 복원된 질문-답변: ${this.firstvibeJsonData.qa_history.length}개\n`));
-          
+
           // QA 요약 표시
           this.displayQASummary();
-          
+
           // 답변 검토 및 확인 단계로 이동 (수정/확인 선택)
           const confirmed = await this.reviewAndConfirmAnswers();
-          
+
           if (confirmed) {
             // 확인됐으면 PRD 생성
             process.stdout.write('\x1B[1A\x1B[2K');
@@ -838,7 +838,7 @@ class PRDGenerator {
 
         // 초기 프로젝트 설명 입력 - 명령줄/대화형/비대화형 모드 구분
         let initialInput;
-        
+
         if (this.commandLineDescription) {
           // 명령줄 인수로 제공된 경우
           initialInput = this.commandLineDescription;
@@ -847,9 +847,9 @@ class PRDGenerator {
           // 프로젝트 설명 멀티라인 입력
           console.log(pastelColors.mint('만들고자 하는 프로젝트에 대해 설명해주세요. 여러 줄로 입력 가능합니다.'));
           console.log(pastelColors.lavender('빈 줄에서 엔터치면 완료됩니다.'));
-          
+
           let descriptionLines = [];
-          
+
           while (true) {
             const result = await inquirer.prompt([
               {
@@ -859,19 +859,19 @@ class PRDGenerator {
                 default: ''
               }
             ]);
-            
+
             const line = result.line?.trim();
-            
+
             if (!line) {
               // 빈 줄이면 완료
               break;
             }
-            
+
             descriptionLines.push(line);
           }
-          
+
           const description = descriptionLines.join('\n').trim();
-          
+
           if (!description) {
             console.error(chalk.red('프로젝트 설명을 입력해주세요.'));
             process.exit(1);
@@ -881,19 +881,19 @@ class PRDGenerator {
           // 비대화형 모드: stdin에서 파이프된 입력 읽기
           let stdinInput = '';
           process.stdin.setEncoding('utf8');
-          
+
           for await (const chunk of process.stdin) {
             stdinInput += chunk;
           }
-          
+
           // 개행 문자를 보존하면서 앞뒤 공백만 제거
           initialInput = stdinInput.replace(/^\s+|\s+$/g, '');
-          
+
           if (!initialInput) {
             console.error(chalk.red('❌ 파이프된 입력이 비어있습니다.'));
             process.exit(1);
           }
-          
+
           console.log(pastelColors.mint('📝 입력된 프로젝트 설명: ') + pastelColors.yellow(initialInput));
         }
 
